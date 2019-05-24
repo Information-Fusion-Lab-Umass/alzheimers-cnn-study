@@ -1,0 +1,32 @@
+use_gpu: True
+
+data:
+    set_name: ae_cnn_patches
+    max_workers: 1
+    valid_split: 0.2
+    test_split: 0.0
+    limit: -1
+
+model:
+    class: ae_cnn_patches
+
+pretrain:
+    skip: False
+    num_epochs: 5
+
+train:
+    num_epochs: 24
+    optim:
+        learn_rate: 0.1
+        weight_decay: 0.0
+    batch_size: 1
+    print_iter: 10
+    save_model: True
+
+valid:
+    batch_size: 1
+
+test:
+    batch_size: 1
+
+remarks: Run on small set to see if model overfits.

@@ -1,0 +1,50 @@
+use_gpu: True
+verbose: False
+
+# path to the label file, relative to the src/cae/ path.
+
+# label_path: outputs/files_manifest.pickle
+# image_col: postproc_path
+# label_col: label
+
+# label_path: outputs/surfer_labels.pckl
+# image_col: PROC_IMGPATH
+# label_col: DX
+
+label_path: outputs/normalized_mapping.pickle
+# image_col: [ gray_matter_path ]
+image_col: [ gray_matter_path, white_matter_path, csf_path ]
+label_col: label
+
+data:
+    set_name: 2d
+    max_workers: 8
+    valid_split: 0.2
+    test_split: 0.2
+    limit: -1
+
+model:
+    class: 2d
+
+pretrain:
+    num_epochs: 0
+    batch_size: 6
+
+train:
+    num_epochs: 100
+    optim:
+        learn_rate: 0.01
+        weight_decay: 0.0001
+        momentum: 0.9
+    batch_size: 8
+    print_iter: 5
+    save_model: True
+
+valid:
+    batch_size: 8
+
+test:
+    batch_size: 8
+
+
+remarks: 50-layer network with dropout at 0.2
