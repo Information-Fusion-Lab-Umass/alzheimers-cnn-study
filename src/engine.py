@@ -8,10 +8,7 @@ from torch.utils.data import DataLoader
 from torch.optim import lr_scheduler
 import torchvision.transforms as T
 
-from dataset import ADNIAutoEncDataset, ADNIClassDataset, ADNIAeCnnDataset
 from normalized_dataset import NormalizedDataset
-from presliced_dataset import PreslicedDataset
-
 from models.vanilla_cae import VanillaCAE
 from models.transform_cae import SpatialTransformConvAutoEnc
 from models.classifier import Classify
@@ -20,18 +17,21 @@ from models.ae_cnn import AE_CNN
 from models.two_d import TwoD
 from models.deep_mri import DeepMRI
 from models.deep_ae_mri import DeepAutoencMRI
+from models.dense_net_3D import DenseNet3D
 from models.pretrained import PretrainModel
-from slice_dataset import SliceDataset
 from utils.transforms import RangeNormalization, NaNToNum, PadToSameDim, MeanStdNormalization
 
 from utils.loader import invalid_collate
+
+import os
+import pickle
 
 from pdb import set_trace
 
 class Engine:
     OPTIMIZERS = ["adam", "sgd"]
 
-    def __init__(self, config, tb_writer, logger, **kwargs):
+    def __init__(self, config, tb_writer, logger, cross_val_flag, **kwargs):
         device = kwargs.get("device", None)
         model_path = kwargs.get("model_path", None)
 
@@ -40,11 +40,13 @@ class Engine:
         self._config = config
         self._setup_device(device)
         self.load_model(model_path)
-        self._setup_data()
+        self._setup_data(cross_val_flag)
+ 
+        self.inception_mode = config["model"]["class"] == "inception_v3"
 
         self.train_optim = None
         self.train_scheduler = None
-
+    """
     def pretrain(self, epoch):
         device = self._device
         config = self._config
@@ -115,14 +117,13 @@ class Engine:
                 print("\tIteration {} ({}): {}"
                             .format(num_iter, y.detach(), loss.item()))
 
-        average_loss = 0 if len(losses) == 0 else (sum(losses) / len(losses))
-
         return {
             "loss_history": losses,
-            "average_loss": average_loss
+            "average_loss": sum(losses) / len(losses)
         }
+    """
 
-    def train(self, epoch=0):
+    def train(self, epoch=0, max_epochs=33):
         '''
         Execute the training loop.
 
@@ -150,8 +151,10 @@ class Engine:
             self._setup_train_optimizer()
 
         if self.train_scheduler is not None:
-            self.train_scheduler.step()
+            #self.train_scheduler.step()
             for param_group in self.train_optim.param_groups:
+                lr_orig = self._config["train"]["optim"]["learn_rate"]
+                param_group['lr'] = lr_orig * (1 - epoch / max_epochs)**0.5
                 print(param_group['lr'])
 
         losses = []
@@ -162,18 +165,16 @@ class Engine:
             "MCI": [0, 0],
             "Total": [0, 0]
         }
-
         for num_iter, (x, y) in enumerate(self.train_loader):
             if len(x) < self._gpu_count * 2: # skip for BatchNorm1d
                 continue
-
+       
             self.train_optim.zero_grad()
 
             if randint(1, 100) <= 5:
                 temp_x = x.detach()
                 # randomly pick one image to write to tensorboard
                 img_idx = randint(0, len(temp_x) - 1)
-
                 if len(temp_x.shape) == 5:
                     # enumerate all of the channels
                     inputs = [
@@ -207,12 +208,12 @@ class Engine:
             y = y.to(device=device).long()
 
             pred = model(x)
-
+            if self.inception_mode == True:
+                pred = pred[0]
             if type(model) == torch.nn.DataParallel:
                 loss = model.module.loss(pred, y)
             else:
                 loss = model.loss(pred, y)
-
             if y.dim() == 1: # classification
                 with torch.no_grad():
                     pred = pred.argmax(dim=1)
@@ -221,17 +222,12 @@ class Engine:
                     correct = (y.cpu().numpy() == pred.cpu().numpy())
                     labels = label_encoder.inverse_transform(y.cpu().numpy())
                     tally = self._add_to_tally(labels, correct, tally)
-
             loss.backward()
             self.train_optim.step()
-
             losses.append(loss.item())
-
-        average_loss = 0 if len(losses) == 0 else (sum(losses) / len(losses))
-
         return {
             "loss_history": losses,
-            "average_loss": average_loss
+            "average_loss": sum(losses) / len(losses)
         }, tally
 
     def validate(self):
@@ -278,11 +274,9 @@ class Engine:
 
                 losses.append(loss.item())
 
-        average_loss = 0 if len(losses) == 0 else (sum(losses) / len(losses))
-
         return {
             "loss_history": losses,
-            "average_loss": average_loss,
+            "average_loss": sum(losses) / len(losses),
             "num_correct": num_correct,
             "num_total": num_total
         }, tally
@@ -330,20 +324,52 @@ class Engine:
 
                 losses.append(loss.item())
 
-        pct_correct = round((tally["Total"][0] * 100.0) / tally["Total"][1], 2) if tally["Total"][1] != 0 else 0
+        pct_correct = round((tally["Total"][0] * 100.0) / tally["Total"][1], 2)
         print("\tTest correct: AD {}/{}, CN {}/{}, MCI {}/{}, total {}/{}({}%)"
                 .format(tally["AD"][0], tally["AD"][1], tally["CN"][0],
                         tally["CN"][1], tally["MCI"][0], tally["MCI"][1],
                         tally["Total"][0], tally["Total"][1], pct_correct))
 
-        average_loss = 0 if len(losses) == 0 else (sum(losses) / len(losses))
-
         return {
             "loss_history": losses,
-            "average_loss": average_loss,
+            "average_loss": sum(losses) / len(losses),
             "num_correct": num_correct,
             "num_total": num_total
         }, tally
+
+    def gen_feature_outputs(self):
+        device = self._device
+        config = self._config
+        model = self._model
+
+        model = model.to(device=device)
+        
+        with torch.no_grad():
+            
+            def gen_feature_outputs_helper(data_loader):
+                i = 0
+                for num_iter, (x, y) in enumerate(data_loader):
+                    i += 1
+                    print(i)
+                    print(y)
+                    x = x.to(device=device).float()
+                    pred = model(x)
+                    if (self.inception_mode == True):
+                        pred = pred[0]
+                    for i in range(pred.shape[0]):
+                        filepath = '/mnt/nfs/work1/mfiterau/ADNI_data/feature_output/resnet/'
+                        if not os.path.exists(filepath + y[0][i]):
+                            os.mkdir(filepath + y[0][i])
+                        if not os.path.exists(filepath + y[0][i] + '/' + y[1][i]):
+                            os.mkdir(filepath + y[0][i] + '/' + y[1][i])
+                        filepath += y[0][i] + '/' + y[1][i] + '/features.pckl' 
+                        pred = pred.cpu()
+                        torch.save(pred[i], filepath)
+                print(i)
+            print("On training data right now...")
+            gen_feature_outputs_helper(self.train_loader)
+            print("On to validation data now...")
+            gen_feature_outputs_helper(self.valid_loader)
 
     def save_model(self, path, **kwargs):
         model = self._model.cpu()
@@ -381,49 +407,27 @@ class Engine:
         model_class = config["model"]['class']
         n_channels = len(config["image_col"])
 
-        if model_class == "vanilla_cae":
-            print("Using vanilla_cae model.")
-            self._model = VanillaCAE()
-        elif model_class == "transformer":
-            print("Using transformer model.")
-            self._model = SpatialTransformConvAutoEnc()
-        elif model_class == "classify":
-            print("Using classify model.")
-            self._model = Classify()
-        elif model_class == "hosseini":
-            print("Using Hosseini model.")
-            self._model = Hosseini()
-        elif model_class == "hosseini_three_layer":
-            print("Using Three-Layer Hosseini model.")
-            self._model = HosseiniThreeLayer(num_channels=n_channels)
-        elif model_class == "hosseini_simple":
-            print("Using simple Hosseini model with two-layer autoencoder.")
-            self._model = HosseiniSimple()
-        elif model_class == "hosseini_deep":
-            print("Using deep Hosseini model.")
-            self._model = HosseiniDeep(num_channels=n_channels)
-        elif model_class == "deep_mri":
-            print("Using deep MRI model.")
-            self._model = DeepMRI(num_channels=n_channels)
-        elif model_class == "deep_ae_mri":
+        if model_class == "deep_ae_mri":
             print("Using deep AE MRI model")
             self._model = DeepAutoencMRI(num_channels=n_channels,
                                 num_blocks=config["model"]["num_blocks"],
                                 sparsity=config["pretrain"]["sparsity"],
                                 cnn_dropout=config["train"]["cnn_dropout"],
                                 class_dropout=config["train"]["class_dropout"])
-        elif model_class == "2d":
-            print("Using 2D deep learning model.")
-            n_channels = len(config["image_col"])
-            self._model = TwoD(num_channels=n_channels)
-        elif model_class == "ae_cnn_patches":
-            print("Using ae cnn patches model.")
-            self._model = AE_CNN()
-        elif model_class in ["vgg19_bn","densenet121","resnet18", "vgg16", "alexnet", "inception_v3"]:
+        elif model_class == "3D_dense_net":
+            print("Using Wang et al. 3D DenseNet model")
+            self._model = DenseNet3D(num_channels=n_channels,
+                                num_blocks=config["model"]["num_blocks"],
+                                sparsity=config["pretrain"]["sparsity"],
+                                cnn_dropout=config["train"]["cnn_dropout"],
+                                class_dropout=config["train"]["class_dropout"])
+        elif model_class in ["resnet18", "densenet121", "vgg16", "alexnet", "inception_v3"]:
             print("Using {} model.".format(model_class))
             self._model = PretrainModel(model_name=model_class,
                             freeze_weight=self._config["train"]["freeze_cnn"],
-                            pretrained=self._config["model"]["pretrained"])
+                            pretrained=self._config["model"]["pretrained"],
+                            weights=model_path,
+                            save_features=self._config["features_to_pickles"])
         else:
             raise Exception("Unrecognized model: {}".format(model_class))
 
@@ -433,13 +437,12 @@ class Engine:
         if self._use_gpu and self._gpu_count > 1:
             self._model = nn.DataParallel(self._model)
 
-    def _setup_data(self):
+    def _setup_data(self, cross_val_fold_num):
         config = self._config
         num_workers = min(mp.cpu_count() // 2, config["data"]["max_workers"])
         num_workers = max(num_workers, 1)
 
         transforms = self._get_transforms()
-
         pretrain_dataset_params = {
             "mode": "all",
             "task": "pretrain",
@@ -456,7 +459,9 @@ class Engine:
             "test_split": config["data"]["test_split"],
             "limit": config["data"]["limit"],
             "config": config,
-            "transforms": transforms
+            "transforms": transforms,
+            "cross_val_fold": cross_val_fold_num,
+            "features_to_pckl": config["features_to_pickles"]
         }
         valid_dataset_params = {
             "mode": "valid",
@@ -465,7 +470,9 @@ class Engine:
             "test_split": config["data"]["test_split"],
             "limit": config["data"]["limit"],
             "config": config,
-            "transforms": transforms
+            "transforms": transforms,
+            "cross_val_fold": cross_val_fold_num,
+            "features_to_pckl": config["features_to_pickles"]
         }
         test_dataset_params = {
             "mode": "test",
@@ -503,30 +510,7 @@ class Engine:
             "shuffle": True
         }
 
-        if config["data"]['set_name'] == "autoenc":
-            self.train_dataset = ADNIAutoEncDataset(**train_dataset_params)
-            self.valid_dataset = ADNIAutoEncDataset(**valid_dataset_params)
-            self.test_dataset = ADNIAutoEncDataset(**test_dataset_params)
-        elif config["data"]["set_name"] == "classify":
-            self.pretrain_dataset = ADNIClassDataset(**pretrain_dataset_params)
-            self.train_dataset = ADNIClassDataset(**train_dataset_params)
-            self.valid_dataset = ADNIClassDataset(**valid_dataset_params)
-            self.test_dataset = ADNIClassDataset(**test_dataset_params)
-        elif config["data"]["set_name"] == "ae_cnn_patches":
-            self.pretrain_dataset = ADNIAeCnnDataset(**pretrain_dataset_params)
-            self.train_dataset = ADNIAeCnnDataset(**train_dataset_params)
-            self.valid_dataset = ADNIAeCnnDataset(**valid_dataset_params)
-            self.test_dataset = ADNIAeCnnDataset(**test_dataset_params)
-        elif config["data"]["set_name"] == "presliced":
-            self.pretrain_dataset = PreslicedDataset(mode="train",
-                                        transforms=transforms)
-            self.train_dataset = PreslicedDataset(mode="train",
-                                        transforms=transforms)
-            self.valid_dataset = PreslicedDataset(mode="valid",
-                                        transforms=transforms)
-            self.test_dataset = PreslicedDataset(mode="test",
-                                        transforms=transforms)
-        elif config["data"]["set_name"] == "normalized":
+        if config["data"]["set_name"] == "normalized":
             num_dim = config["data"]["num_dim"]
             slice_view = config["data"]["slice_view"]
             slice_num = config["data"]["slice_num"]
@@ -542,24 +526,18 @@ class Engine:
             self.test_dataset = NormalizedDataset(
                                         label_encoder=label_encoder,
                                         **test_dataset_params)
-        elif config["data"]["set_name"] == "2d":
-            self.pretrain_dataset = SliceDataset(**pretrain_dataset_params)
-            self.train_dataset = SliceDataset(**train_dataset_params)
-            # Ensure the label and its encoded counter part match.
-            label_encoder = self.train_dataset.label_encoder
-            self.valid_dataset = SliceDataset(label_encoder=label_encoder,
-                                                    **valid_dataset_params)
-            self.test_dataset = SliceDataset(label_encoder=label_encoder,
-                                                    **test_dataset_params)
-
-        self.pretrain_loader = DataLoader(self.pretrain_dataset,
-                                          **pretrain_loader_params)
-        self.train_loader = DataLoader(self.train_dataset,
+        #self.pretrain_loader = DataLoader(self.pretrain_dataset,
+        #                                  **pretrain_loader_params)
+        ## Note by Yi: uneven batch may occur at the end when data_size % batch_size != 0
+        ## See here: https://forums.fast.ai/t/understanding-code-error-expected-more-than-1-value-per-channel-when-training/9257/10
+        self.train_loader = DataLoader(self.train_dataset, drop_last=True,
                                        **train_loader_params)
-        self.valid_loader = DataLoader(self.valid_dataset,
+        self.valid_loader = DataLoader(self.valid_dataset, drop_last=True,
                                        **valid_loader_params)
-        self.test_loader = DataLoader(self.test_dataset,
-                                      **test_loader_params)
+       
+        if cross_val_fold_num != -1:
+            self.test_loader = DataLoader(self.test_dataset,
+                                          **test_loader_params)
 
         print("{} training data, {} validation data, {} test data"
                 .format(len(self.train_dataset),
@@ -587,7 +565,7 @@ class Engine:
             raise Exception("Unrecognized optimizer {}, valid values are {}"
                     .format(optim_name, self.OPTIMIZERS))
 
-        if use_scheduler:
+        if use_scheduler is True:
             self.train_scheduler = lr_scheduler.StepLR(optimizer,
                                         step_size=step_size, gamma=decay_factor)
 
@@ -614,7 +592,7 @@ class Engine:
         config = self._config
 
         transforms = []
-
+        
         if config["data"]["num_dim"] == 2 and \
             not config["data"]["set_name"] == "presliced":
             transforms.append(T.ToPILImage("RGB"))

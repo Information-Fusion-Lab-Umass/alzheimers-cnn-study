@@ -18,7 +18,7 @@ from sklearn.utils import shuffle
 import random
 
 class NormalizedDataset(Dataset):
-    '''CLINICA-normalized dataset for classification task.
+    ''' Data Generator
     '''
     VALID_MODES = ["train", "valid", "test", "all"]
     VALID_TASKS = ["pretrain", "classify"]
@@ -29,34 +29,26 @@ class NormalizedDataset(Dataset):
             "label_col": "label",
             "label_path": "outputs/normalized_mapping.pickle"
         })
+        
         # number of dimensions in the image, 2D vs 3D
         self.num_dim = kwargs.get("num_dim", self.config["data"]["num_dim"])
-        # if 2D, which view
+        # if 2D, which view and index at which to slice
         self.slice_view = kwargs.get("slice_view",
                                       self.config["data"]["slice_view"])
-        # the index at which to slice
         self.slice_idx = kwargs.get("slice_num",
                                     self.config["data"]["slice_num"])
-        if not isinstance(self.slice_idx, list):
-            raise Exception("Expected a list for slice_num, but instead got {}".format(self.slice_idx))
-        if not (len(self.slice_idx) == 1 or len(self.slice_idx) == 3):
-            raise Exception("Expected either 1 or three slices for slice_num, got {} instead.".format(len(self.slice_idx)))
-
+        
         # limit for the size of the dataset, for debugging purposes
         self.limit = kwargs.get("limit", -1)
         self.verbose = kwargs.get("verbose", self.config["verbose"])
-
-        if "apply_cmap" in self.config["data"]:
-            self.apply_cmap = self.config["data"]["apply_cmap"]
 
         transforms = kwargs.get("transforms", [
             T.ToTensor()
         ])
         self.transforms = T.Compose(transforms)
 
-        # name of the image column in the dataframe
+        # name of the image and label column in the dataframe
         self.image_col = self.config["image_col"]
-        # name of the label column in the dataframe
         self.label_col = self.config["label_col"]
 
         # skull-stripping mask
@@ -71,6 +63,7 @@ class NormalizedDataset(Dataset):
         mapping_path = kwargs.get("mapping_path",
                                   self.config["label_path"])
         mode = kwargs.get("mode", "all")
+        self.mode = mode
         task = kwargs.get("task", "classify")
         valid_split = kwargs.get("valid_split", 0.2)
         test_split = kwargs.get("test_split", 0.0)
@@ -80,18 +73,37 @@ class NormalizedDataset(Dataset):
         self.label_encoder = label_encoder if input_encoder is None \
                                            else input_encoder
 
-        self.dataframe = self._split_data(df, valid_split, test_split, mode,
-                                          task)
+        self.class_balancing_live = False
+        if "class_balancing_live" in self.config:
+           if self.config["class_balancing_live"] == True:
+               self.class_balancing_live = True
+
+        self.customized_split_idx = -1
+        if "customized_split_idx" in self.config["data"]:
+            self.customized_split_idx = self.config["data"]["customized_split_idx"]
+
+        self.features_to_pickles = kwargs.get("features_to_pckl", False)
+        self.cross_val_fold_num = kwargs.get("cross_val_fold", 0)
+        self.dataframe = self._split_data(df, valid_split, test_split, mode, task)
 
     def __len__(self):
-        return len(self.dataframe.index)
+        return self.dataframe.shape[0]
 
     def __getitem__(self, idx):
+        if self.class_balancing_live == True and self.mode == "train":
+            label = random.choice(["CN", "MCI", "AD"])
+            data = self.dataframe[self.dataframe["label"] == label].sample(n=1)
+            idx = data.drop(["index"], axis=1).index[0] 
         image_paths = self._get_img_paths(idx)
         image = self._load_imgs(image_paths)
 
         label = self.dataframe[self.label_col].iloc[idx]
         encoded_label = self.label_encoder.transform([label])[0]
+        
+        if self.features_to_pickles == True:
+            patient_id = self.dataframe["patient_id"].iloc[idx]
+            visit_code = self.dataframe["visit_code"].iloc[idx]
+            encoded_label = (patient_id, visit_code)
 
         if self.verbose:
             print("Fetched image (label: {}/{}) from {}."
@@ -146,6 +158,7 @@ class NormalizedDataset(Dataset):
                     images.append(image)
                 elif self.num_dim == 3:
                     # NOTE: Transforms on 3D images must be performed here. 2D image transforms are performed in __getitem__
+                    #image = image[:,30:110,:]
                     images.append(self.transforms(image))
             except Exception as e:
                 print("Failed to load #{}: {}".format(idx, paths[idx]))
@@ -171,17 +184,7 @@ class NormalizedDataset(Dataset):
             # Get pixel values to between 0 and 255
             stacked_image = np.uint8(RangeNormalization()(stacked_image) * 255)
 
-            # apply color map
-            if self.apply_cmap:
-                stacked_image = plt \
-                    .get_cmap("viridis")(stacked_image.squeeze())[:,:,:3]
-
-                stacked_image = np.uint8(RangeNormalization() \
-                                    (stacked_image) * 255)
-
-                # Rotate to upright
-                stacked_image = np.rot90(stacked_image)
-            elif stacked_image.shape[0] == 1:
+            if stacked_image.shape[0] == 1:
                 stacked_image = np.repeat(stacked_image, 3, axis=0)
                 # transpose to (W,H,C) for PIL
                 stacked_image = stacked_image.transpose((1,2,0))
@@ -198,153 +201,37 @@ class NormalizedDataset(Dataset):
         else:
             raise Exception("Unrecognized slice view: {}" \
                                 .format(view))
-
         return image
 
     def _split_data(self, df, valid_split, test_split, mode, task):
-        if mode not in self.VALID_MODES:
-            raise Exception("Invalid mode: {}. Valid options are {}"
-                                .format(mode, self.VALID_MODES))
-
-        if task not in self.VALID_TASKS:
-            raise Exception("Invalid task: {}. Valid options are {}"
-                                .format(task, self.VALID_TASKS))
-
-        if not 0.0 <= valid_split <= 1.0:
-            raise Exception("Invalid validation split percentage: {}"
-                                .format(valid_split))
-
-        if not 0.0 <= test_split <= 1.0:
-            raise Exception("Invalid test split percentage: {}"
-                                .format(test_split))
-
-        if (valid_split + test_split) >= 1.0:
-            raise Exception("valid_split + test_split ({}) is greater than or equal to 1.0".format(valid_split + test_split))
-
-        ad = df[df[self.label_col] == "AD"]
-        mci = df[df[self.label_col] == "MCI"]
-        cn = df[df[self.label_col] == "CN"]
-
-        ad = shuffle(ad)
-        mci = shuffle(mci)
-        cn = shuffle(cn)
-
-        size = min(len(ad.index), len(mci.index), len(cn.index)) \
-                if self.limit == -1 else self.limit
-
         if task == "classify":
-            ad = self._split_dataframe(ad[:size], valid_split, test_split, mode)
-            mci = self._split_dataframe(mci[:size], valid_split, test_split,
-                                        mode)
-            cn = self._split_dataframe(cn[:size], valid_split, test_split, mode)
-
-            print("Class distribution for {} {}: {} AD, {} MCI, {} CN"
-                    .format(task, mode, len(ad.index), len(mci.index),
-                            len(cn.index)))
-        elif task == "pretrain":
-            ad = self._split_dataframe(ad[size:], valid_split, test_split, mode)
-            mci = self._split_dataframe(mci[size:], valid_split, test_split,
-                                        mode)
-            cn = self._split_dataframe(cn[size:], valid_split, test_split, mode)
-
-            if self.limit != -1:
-                ad = ad[:self.limit]
-                mci = mci[:self.limit]
-                cn = cn[:self.limit]
-
-            print("Class distribution for {} {}: {} AD, {} MCI, {} CN"
-                    .format(task, mode, len(ad.index), len(mci.index),
-                            len(cn.index)))
-
-        return pd.concat([ad, mci, cn])
-
-    def _split_dataframe(self, df, valid_split, test_split, mode):
-        train_split = 1 - valid_split - test_split
-        num_train = int(len(df.index) * train_split)
-        num_valid = int(len(df.index) * valid_split)
-        num_test = int(len(df.index) * test_split)
-
-        if mode == "train":
-            return df[:num_train].reset_index(drop=True)
-        elif mode == "valid":
-            start = num_train
-            end = start + num_valid
-            return df[start:end].reset_index(drop=True)
-        elif mode == "test":
-            start = num_train + num_valid
-            end = start + num_test
-            return df[start:end].reset_index(drop=True)
-        else:
-            return df[:]
-
+            if self.customized_split_idx != -1:
+                if mode == "train":
+                    df = df[:1400]
+                elif mode == "valid":
+                    df = df[1400:-1]
+                else:
+                    df = df[-1:]
+                return df
+       
     def _get_data(self, mapping_path):
+        """
+        Note: This function is called in repeated times for train, val, test, etc.
+        """
         if not os.path.exists(mapping_path):
-            raise Exception("Failed to create dataset, \"{}\" does not exist! Run \"utils/normalized_mapping.py\" script to generate mapping."
+            raise Exception("Failed to create dataset, \"{}\" does not exist! \
+                Run \"utils/normalized_mapping.py\" script to generate mapping."
                 .format(mapping_path))
 
         with open(mapping_path, "rb") as file:
             df = pickle.load(file)
-
-        # filter out rows with empty label
-        df = df[df[self.label_col].notnull()].reset_index()
-        # filter out rows with empty image path
-        for i in range(len(self.image_col)):
-            df = df[df[self.image_col[i]].notnull()].reset_index(drop=True)
-
-        # change LMCI and EMCI to MCI
-        target = (df[self.label_col] == "LMCI") | \
-                 (df[self.label_col] == "EMCI")
-        df.loc[target, self.label_col] = "MCI"
-
+        
         # setup labels encoder
         labels = df[self.label_col].unique()
         encoder = LabelEncoder()
         encoder.fit(labels)
-
-        df = df.sample(frac=1)
-
+       
+        df = df[df["DX"] != "MCI"]
+        #df = df.groupby('PTID').first()  
+        print(df.shape)
         return df, encoder
-
-if __name__ == "__main__":
-    with open("config/2d_classify.yaml") as file:
-        config = yaml.load(file)
-    dataset = NormalizedDataset(
-        num_dim=2,
-        slice_view="coronal",
-        slice_num=[ 80 ],
-        mode="train",
-        task="classify",
-        valid_split=0.1,
-        test_split=0.1,
-        limit=-1,
-        config=config,
-        transforms=[
-            T.ToPILImage(),
-            T.Resize((224, 224)),
-            T.ToTensor(),
-            NaNToNum(),
-            RangeNormalization()
-        ]
-    )
-    image = dataset[0]
-
-    # with open("config/3d_classify.yaml") as file:
-    #     config = yaml.load(file)
-    # dataset = NormalizedDataset(
-    #     num_dim=3,
-    #     slice_view="coronal",
-    #     slice_num=[ 80 ],
-    #     mode="train",
-    #     task="classify",
-    #     valid_split=0.1,
-    #     test_split=0.1,
-    #     limit=-1,
-    #     config=config,
-    #     transforms=[
-    #         T.ToTensor(),
-    #         PadToSameDim(),
-    #         NaNToNum(),
-    #         RangeNormalization()
-    #     ]
-    # )
-    # image = dataset[0]
