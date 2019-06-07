@@ -1,3 +1,4 @@
+from pdb import set_trace
 
 class Splitter(object):
     def __init__(self, dataset, split_ratio, shuffle=False):
@@ -23,7 +24,7 @@ class Splitter(object):
         Example:
             _accum_idx([3, 3, 3]) => [3, 6, 9]
         """
-        return [ sum(num_list[idx + 1]) for idx, _ in enumerate(num_list) ]
+        return [ sum(num_list[:idx + 1]) for idx, _ in enumerate(num_list) ]
 
 class AllDataSplitter(Splitter):
     def __init__(self, dataset, split_ratio):
@@ -45,7 +46,6 @@ class AllDataSplitter(Splitter):
             else:
                 previous_idx = split_idx[i-1]
                 data_split = self.dataset[previous_idx:current_idx]
-                split_idx = list(map(lambda x: x[0], data_split))
-                splits.append(split_idx)
+                splits.append(data_split)
 
         return tuple(splits)

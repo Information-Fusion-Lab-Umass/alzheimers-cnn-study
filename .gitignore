@@ -3,6 +3,7 @@ __pycache__/*
 
 **/*.pyc
 **/.DS_Store
+**/outputs/data_mapping.pickle
 **/outputs/errors/*
 **/outputs/logs/*
 **/outputs/tensorboards/*

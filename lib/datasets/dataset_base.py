@@ -3,8 +3,9 @@ import pickle
 import traceback
 import nibabel as nib
 
-import torchvision.transforms as T
+from torchvision import transforms as T
 from torch.utils.data import Dataset
+from pdb import set_trace
 
 from .dataset_splitters import AllDataSplitter
 
@@ -24,10 +25,10 @@ class DatasetBase(Dataset):
         self.image_columns = config.image_columns
 
         shuffle = kwargs.get("shuffle", False)
-        mapping_path = config.mapping_path
+        mapping_path = "outputs/data_mapping.pickle"
 
         if not os.path.exists(mapping_path):
-            raise FileNotFoundError(f"Mapping file \"{mapping_path}\" does not exist! Run \"util/mapping.py\" script to generate mapping.")
+            raise FileNotFoundError(f"Mapping file \"{mapping_path}\" does not exist! Run \"mapping.py\" script in the \"util/\" directory to generate the mapping pickle file.")
 
         self.dataframe = self._load_data(mapping_path)
 
@@ -52,7 +53,7 @@ class DatasetBase(Dataset):
         if len(self.data_idx) == 0:
             self.logger.warn("Len of the dataset is 0, make sure to call load_split() methods before iterating through the dataset.")
 
-        return self.data_idx
+        return len(self.data_idx)
 
     def __getitem__(self, idx):
         return None
@@ -77,7 +78,7 @@ class DatasetBase(Dataset):
                 print(traceback.format_exc())
                 return None
 
-            image.append(images)
+            images.append(image)
 
         return images, label
 
@@ -98,19 +99,19 @@ class DatasetBase(Dataset):
             df = pickle.load(file)
 
         # filter out rows with empty image path
-        for i in range(len(self.image_col)):
-            df = df[df[self.image_col[i]].notnull()].reset_index(drop=True)
+        for i in range(len(self.image_columns)):
+            df = df[df[self.image_columns[i]].notnull()].reset_index(drop=True)
 
         # change LMCI and EMCI to MCI
-        target = (df[self.label_col] == "LMCI") | \
-                 (df[self.label_col] == "EMCI")
-        df.loc[target, self.label_col] = "MCI"
+        target = (df[self.config.label_column] == "LMCI") | \
+                 (df[self.config.label_column] == "EMCI")
+        df.loc[target, self.config.label_column] = "MCI"
 
         return df
 
     def load_split(self, split, method="split_all_data"):
-        assert split in VALID_SPLIT, \
-            f"Invalid split argument: {split}, valid options are: {VALID_SPLIT}"
+        assert split in self.VALID_SPLIT, \
+            f"Invalid split argument: {split}, valid options are: {self.VALID_SPLIT}"
 
         if split == "all":
             self.data_idx = list(range(self.dataframe))
@@ -124,16 +125,31 @@ class DatasetBase(Dataset):
         split_ratio = [ train_ratio, valid_ratio, test_ratio ]
 
         if method == "split_all_data":
-            split = AllDataSplitter(reduced_dataset, split_ratio)
-            train_split, valid_split, test_split = split()
+            splitter = AllDataSplitter(reduced_dataset, split_ratio)
         else:
             raise Exception(f"Split method {method} not recognized or supported.")
 
-        self.logger.debug(f"Splitting dataset for \"{split}\" split and method \"{method}\". Resulting split size: training - {len(train_split)}, validation {len(valid_split)}, testing - {len(test_split)}")
+        train_split, valid_split, test_split = splitter()
+
+        self.logger.info(
+            f"Splitting dataset for \"{split}\" split and method \"{method}\"."
+            f"\n\tTraining size - {len(train_split)}"
+            f"\n\t\tCN: {len(list(filter(lambda x: x[1]=='CN',train_split)))}, "
+            f"MCI: {len(list(filter(lambda x: x[1]=='MCI',train_split)))}, "
+            f"AD: {len(list(filter(lambda x: x[1]=='AD',train_split)))}"
+            f"\n\tValidation size - {len(valid_split)}"
+            f"\n\t\tCN: {len(list(filter(lambda x: x[1]=='CN',valid_split)))}, "
+            f"MCI: {len(list(filter(lambda x: x[1]=='MCI',valid_split)))}, "
+            f"AD: {len(list(filter(lambda x: x[1]=='AD',valid_split)))}"
+            f"\n\tTesting size - {len(test_split)}"
+            f"\n\t\tCN: {len(list(filter(lambda x: x[1]=='CN',test_split)))}, "
+            f"MCI: {len(list(filter(lambda x: x[1]=='MCI',test_split)))}, "
+            f"AD: {len(list(filter(lambda x: x[1]=='AD',test_split)))}"
+        )
 
         if split == "train":
-            self.data_idx = train_split
+            self.data_idx = list(map(lambda x: x[0], train_split))
         elif split == "valid":
-            self.data_idx = valid_split
+            self.data_idx = list(map(lambda x: x[0], valid_split))
         elif split == "test":
-            self.data_idx = test_split
+            self.data_idx = list(map(lambda x: x[0], test_split))

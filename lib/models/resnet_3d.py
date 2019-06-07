@@ -15,7 +15,7 @@ class ResNet3D(nn.Module):
         num_blocks = kwargs.get("num_blocks", [1, 1, 1, 1, 1])
         class_dropout = kwargs.get("class_dropout", 0.0)
         cnn_dropout = kwargs.get("cnn_dropout", 0.0)
-        data_type = kwargs.get("data_type", "freesurfer")
+        data_type = kwargs.get("data_type", "clinica")
         self.sparsity = kwargs.get("sparsity", 0.0)
 
         # input 145, output 143

@@ -1,6 +1,8 @@
 import torch
 import torch.optim as optim
 
+from tqdm import tqdm
+from pdb import set_trace
 from torch.utils.data import DataLoader
 
 from lib.loader import invalid_collate
@@ -13,8 +15,8 @@ class EngineBase(object):
 
         self.model = None
         self.dataset = None
-        self.pretrain_optim = None
-        self.train_optim = None
+
+        self.setup_device()
 
     def pretrain(self):
         model = model.to(device=self.device)
@@ -23,17 +25,17 @@ class EngineBase(object):
         self.dataset.load_split("all")
 
         loader_params = {
-            "batch_size": config.pretrain_batch_size,
-            "num_workers": config.num_workers,
+            "batch_size": self.config.pretrain_batch_size,
+            "num_workers": self.config.num_workers,
             "collate_fn": invalid_collate,
             "shuffle": True
         }
         loader = DataLoader(self.dataset, **loader_params)
 
-        for num_iter, (x, y) in enumerate(loader):
+        for num_iter, (x, y) in enumerate(tqdm(loader)):
             self.pretrain_optim.zero_grad()
 
-            x = x.to(device=device).float()
+            x = x.to(device=self.device).float()
             output, hidden_rep = model(x, reconstruct=True)
 
             if type(model) == torch.nn.DataParallel:
@@ -53,21 +55,22 @@ class EngineBase(object):
         self.dataset.load_split("train")
 
         loader_params = {
-            "batch_size": config.train_batch_size,
-            "num_workers": config.num_workers,
+            "batch_size": self.config.train_batch_size,
+            "num_workers": self.config.num_workers,
             "collate_fn": invalid_collate,
             "shuffle": True
         }
+
         loader = DataLoader(self.dataset, **loader_params)
 
-        for num_iter, (x, y) in enumerate(loader):
+        for num_iter, (x, y) in enumerate(tqdm(loader)):
             if len(x) < torch.cuda.device_count() * 2: # skip for BatchNorm1d
                 continue
 
             self.train_optim.zero_grad()
 
-            x = x.to(device=device).float()
-            y = y.to(device=device).long()
+            x = x.to(device=self.device).float()
+            y = y.to(device=self.device).long()
 
             pred = model(x)
 
@@ -82,22 +85,22 @@ class EngineBase(object):
             yield x.detach(), y.detach(), loss.detach(), pred.detach()
 
     def validate(self):
-        model = self.model.to(device=device)
+        model = self.model.to(device=self.device)
         model.eval()
 
         self.dataset.load_split("valid")
 
         loader_params = {
-            "batch_size": config.validate_batch_size,
-            "num_workers": config.num_workers,
+            "batch_size": self.config.validate_batch_size,
+            "num_workers": self.config.num_workers,
             "collate_fn": invalid_collate
         }
         loader = DataLoader(self.dataset, **loader_params)
 
         with torch.no_grad():
             for num_iter, (x, y) in enumerate(loader):
-                x = x.to(device=device).float()
-                y = y.to(device=device).long()
+                x = x.to(device=self.device).float()
+                y = y.to(device=self.device).long()
 
                 pred = model(x)
 
@@ -109,22 +112,22 @@ class EngineBase(object):
                 yield x, y, loss, pred
 
     def test(self):
-        model = model.to(device=device)
+        model = model.to(device=self.device)
         model.eval()
 
         self.dataset.load_split("test")
 
         loader_params = {
-            "batch_size": config.test_batch_size,
-            "num_workers": config.num_workers,
+            "batch_size": self.config.test_batch_size,
+            "num_workers": self.config.num_workers,
             "collate_fn": invalid_collate
         }
         loader = DataLoader(self.dataset, **loader_params)
 
         with torch.no_grad():
             for num_iter, (x, y) in enumerate(loader):
-                x = x.to(device=device).float()
-                y = y.to(device=device).long()
+                x = x.to(device=self.device).float()
+                y = y.to(device=self.device).long()
 
                 pred = model(x)
 

@@ -13,13 +13,6 @@ from pdb import set_trace
 
 '''Script to generate label mapping for normalized images.
 
-An example directory path is as follows,
-
-path/to/clinica_procesed_data/tissue_segmentation/tissue_seg_0/subjects/sub-ADNI[SUBJECT_ID]/ses-[VISCODE]/t1/spm/segmentation
-    -> dartel_input
-    -> native_space
-    -> normalized_space
-
 NOTE: The ADNIMERGE.csv file is downloaded from the ADNI website. The original CSV file has a DX column (labels) with missing values, the ADNIMERGE.csv included in this repository contains imputed values based on previous visits and DX_base.
 '''
 
@@ -39,8 +32,18 @@ def lsdir(path):
 def get_image_paths(root, **kwargs):
     '''Generates and return a pandas.DataFrame containing all of the subjects with their respective image paths.
 
+    Example:
+        An example directory path,
+
+        path/to/clinica_procesed_data/tissue_segmentation/tissue_seg_0/subjects/sub-ADNI[SUBJECT_ID]/ses-[VISCODE]/t1/spm/segmentation
+            -> dartel_input
+            -> native_space
+            -> normalized_space
+
+        In this case, the root should be "path/to/clinica_processed_data/tissue_segmentation/".
+
     Args:
-        root (string): The directory level below this path should be all subject IDs. For example, path/to/processed_segmentation_data/caps_tissue/subjects
+        root (string): The directory level below this path should contain folders that begin with either "sub-ADNI" or "tissue_seg_0".
     '''
     max_proc = kwargs.get("max_proc", NUM_CPU - 1)
     num_proc = min(max(1, NUM_CPU - 1), max_proc)
@@ -302,7 +305,7 @@ def main(args):
 if __name__ == "__main__":
     '''
     Script mode
-    python3 mapping.py --adnimerge_path="ADNIMERGE.csv" --output_path=ultimate_final_mapping --output_format="json,pickle" --run_main --max_proc=12
+    python3 mapping.py --output_format="pickle" --run_main --max_proc=12
 
     Interactive mode
     python3 -i mapping.py
@@ -315,7 +318,7 @@ if __name__ == "__main__":
                     help=f"Root folder for the subject images/scans.")
 
     parser.add_argument("--adnimerge_path",
-                    default="ADNIMERGE.csv",
+                    default="../files/ADNIMERGE_relabeled.csv",
                     type=str,
                     help=f"Path to the ADNIMERGE.csv file.")
 
@@ -330,7 +333,7 @@ if __name__ == "__main__":
                     help=f"Root of the directory that contains the CNN features. Optional.")
 
     parser.add_argument("--output_path",
-                    default="ultimate_final_mapping",
+                    default="../outputs/data_mapping",
                     type=str,
                     help=f"Path of the output file.")
 

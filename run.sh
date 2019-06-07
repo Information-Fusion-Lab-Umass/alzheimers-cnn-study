@@ -18,20 +18,19 @@ export cmd="python3 main.py \
 --log_to_stdout \
 --no_log_to_file \
 --use_gpu \
---mapping_path=$MAPPING_PATH \
 --dataset_size_limit -1 \
 --image_columns skull_intact_path \
 --label_column DX \
 --brain_mask_path=$MASK_ICV_PATH \
 --validation_split 0.2 \
 --testing_split 0.2 \
---num_workers 8 \
+--num_workers 0 \
 --pretrain_optim_lr 0.001 \
 --pretrain_optim_wd 0.01 \
 --pretrain_batch_size 2 \
 --train_epochs 100 \
 --train_optim_lr 0.001 \
---train_optim_wd 0.01
+--train_optim_wd 0.01 \
 --train_batch_size 4 \
 --validate_batch_size 8 \
 --test_batch_size 8"

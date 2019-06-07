@@ -67,11 +67,6 @@ def _parse_main_arguments():
                         default=False,
                         help="Whether to use GPU for training and testing.")
 
-    parser.add_argument("--mapping_path",
-                        type=str,
-                        default="path/to/mapping.pickle",
-                        help="Path to the mapping pickle file. This file is generated with \"util/mapping.py\" file.")
-
     parser.add_argument("--dataset_size_limit",
                         type=int,
                         default=-1,
