@@ -132,7 +132,9 @@ class DatasetBase(Dataset):
         train_split, valid_split, test_split = splitter()
 
         self.logger.info(
-            f"Splitting dataset for \"{split}\" split and method \"{method}\"."
+            f"Splitting dataset for \"{split}\" split and method \"{method}\".")
+
+        self.logger.debug(
             f"\n\tTraining size - {len(train_split)}"
             f"\n\t\tCN: {len(list(filter(lambda x: x[1]=='CN',train_split)))}, "
             f"MCI: {len(list(filter(lambda x: x[1]=='MCI',train_split)))}, "
@@ -153,3 +155,9 @@ class DatasetBase(Dataset):
             self.data_idx = list(map(lambda x: x[0], valid_split))
         elif split == "test":
             self.data_idx = list(map(lambda x: x[0], test_split))
+
+        size_limit = self.config.dataset_size_limit
+
+        if size_limit != -1:
+            self.logger.warn(f"ENFORCING DATASET SIZE LIMIT OF {size_limit}.")
+            self.data_idx = self.data_idx[:size_limit]

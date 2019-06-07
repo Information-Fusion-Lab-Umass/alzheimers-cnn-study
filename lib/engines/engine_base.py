@@ -46,7 +46,10 @@ class EngineBase(object):
             loss.backward()
             self.pretrain_optim.step()
 
-            yield x.detach(), y, loss.detach(), output.detach()
+            yield x.detach().cpu(), \
+                  y, \
+                  loss.detach().item(), \
+                  output.detach().cpu()
 
     def train(self):
         model = self.model.to(device=self.device)
@@ -82,7 +85,10 @@ class EngineBase(object):
             loss.backward()
             self.train_optim.step()
 
-            yield x.detach(), y.detach(), loss.detach(), pred.detach()
+            yield x.detach().cpu(), \
+                  y.detach().cpu(), \
+                  loss.detach().item(), \
+                  pred.detach().cpu()
 
     def validate(self):
         model = self.model.to(device=self.device)
@@ -109,7 +115,7 @@ class EngineBase(object):
                 else:
                     loss = model.loss(pred, y)
 
-                yield x, y, loss, pred
+                yield x.cpu(), y.cpu(), loss.item(), pred.cpu()
 
     def test(self):
         model = model.to(device=self.device)
@@ -128,15 +134,9 @@ class EngineBase(object):
             for num_iter, (x, y) in enumerate(loader):
                 x = x.to(device=self.device).float()
                 y = y.to(device=self.device).long()
-
                 pred = model(x)
 
-                if type(model) == torch.nn.DataParallel:
-                    loss = model.module.loss(pred, y)
-                else:
-                    loss = model.loss(pred, y)
-
-                yield x, y, loss, pred
+                yield x.cpu(), y.cpu(), pred.cpu()
 
     def save_current_model(self, path):
         model = self.model.cpu()
