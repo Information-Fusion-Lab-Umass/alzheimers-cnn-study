@@ -22,6 +22,7 @@ def main(config, tb, logger):
 
     engine = Engine(config, tb, logger)
     engine.train()
+    engine.test()
 
 def _parse_main_arguments():
     '''Parse the arguments passed to main.py.

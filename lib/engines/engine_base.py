@@ -118,7 +118,7 @@ class EngineBase(object):
                 yield x.cpu(), y.cpu(), loss.item(), pred.cpu()
 
     def test(self):
-        model = model.to(device=self.device)
+        model = self.model.to(device=self.device)
         model.eval()
 
         self.dataset.load_split("test")
@@ -131,7 +131,7 @@ class EngineBase(object):
         loader = DataLoader(self.dataset, **loader_params)
 
         with torch.no_grad():
-            for num_iter, (x, y) in enumerate(loader):
+            for num_iter, (x, y) in enumerate(tqdm(loader)):
                 x = x.to(device=self.device).float()
                 y = y.to(device=self.device).long()
                 pred = model(x)
