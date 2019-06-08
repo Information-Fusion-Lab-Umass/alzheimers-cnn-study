@@ -131,7 +131,7 @@ class EngineBase(object):
         loader = DataLoader(self.dataset, **loader_params)
 
         with torch.no_grad():
-            for num_iter, (x, y) in enumerate(tqdm(loader)):
+            for num_iter, (x, y) in enumerate(loader):
                 x = x.to(device=self.device).float()
                 y = y.to(device=self.device).long()
                 pred = model(x)

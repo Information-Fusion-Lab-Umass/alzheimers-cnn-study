@@ -4,65 +4,67 @@ from pdb import set_trace
 from .engine_base import EngineBase
 from ..datasets.dataset_3d import Dataset3D
 from ..result import Result
+from ..directory import mkdir
 
 class ClassificationEngine(EngineBase):
     def __init__(self, config, tb, logger, **kwargs):
         super().__init__(config, tb, logger, **kwargs)
+        self.weight_folder = f"outputs/weights/{self.config.run_id}"
 
     def train(self):
         num_epochs = self.config.train_epochs
+        lowest_validation_loss = float("inf")
+        highest_validation_acc = float("-inf")
+
         for epoch in range(num_epochs):
             self.logger.info(
-                f"========== Epoch {epoch + 1}/{num_epochs} =========="
-            )
-            # ==================================================================
-            # Training
-            # ==================================================================
-            train_losses = []
-            train_labels = []
-            train_predictions = []
-
-            for x, y, loss, pred in super().train():
-                train_losses.append(loss)
-                train_labels.append(y)
-                train_predictions.append(pred)
-
-            avg_loss = round(sum(train_losses) / len(train_losses), 7)
-            train_labels = torch.cat(train_labels)
-            train_predictions = torch.cat(train_predictions).argmax(dim=1)
-            train_result = Result(train_predictions, train_labels)
-
-            self.logger.info(
-                f"Epoch {epoch + 1} training completed! Stats:"
-                f"\n\t Loss: {avg_loss}"
-                f"\n\t Acc: {round(train_result.accuracy(), 4)}"
+                f"========== Epoch {epoch + 1}/{num_epochs} ==========\n"
             )
 
-            # ==================================================================
-            # Validation
-            # ==================================================================
-            self.logger.info("Running validation...")
-            valid_losses = []
-            valid_labels = []
-            valid_predictions = []
+            for task in ["train", "validate"]:
+                self.logger.info(f"Running {task}...")
 
-            for x, y, loss, pred in super().validate():
-                valid_losses.append(loss)
-                valid_labels.append(y)
-                valid_predictions.append(pred)
+                losses = []
+                labels = []
+                predictions = []
 
-            avg_loss = round(sum(valid_losses) / len(valid_losses), 7)
-            valid_labels = torch.cat(valid_labels)
-            valid_predictions = torch.cat(valid_predictions).argmax(dim=1)
-            valid_result = Result(valid_predictions, valid_labels)
+                iteration_results = super().train() \
+                    if task == "train" else super().validate()
+
+                for x, y, loss, pred in iteration_results:
+                    losses.append(loss)
+                    labels.append(y)
+                    predictions.append(pred)
+
+                loss = round(sum(losses) / len(losses), 6)
+                labels = torch.cat(labels)
+                predictions = torch.cat(predictions).argmax(dim=1)
+                result = Result(predictions, labels)
+                acc = result.accuracy()
+                class_acc = result.accuracy_by_class()
+
+                self.logger.info(
+                    f"Completed {task}, stats:"
+                    f"\n\t Loss: {loss}"
+                    f"\n\t Acc: {round(acc, 4)}"
+                )
+
+                if task == "validate" and self.config.save_best_model:
+                    mkdir(self.weight_folder)
+
+                    if acc > highest_validation_acc:
+                        self.logger.info(
+                            "Highest validation accuracy! Saving...")
+                        self.save_current_model(
+                            f"{self.weight_folder}/{highest_validation_acc}.pt")
+                    if loss < lowest_validation_loss:
+                        self.logger.info(
+                            "Lowest validation loss! Saving...")
+                        self.save_current_model(
+                            f"{self.weight_folder}/{lowest_validation_loss}.pt")
 
             self.logger.info(
-                f"Epoch {epoch + 1} validation completed! Stats:"
-                f"\n\t Loss: {avg_loss}"
-                f"\n\t Acc: {round(valid_result.accuracy(), 4)}"
-            )
-            self.logger.info(
-                f"========== End epoch {epoch + 1}/{num_epochs} =========="
+                f"========== End epoch {epoch + 1}/{num_epochs} ==========\n"
             )
 
     def test(self):

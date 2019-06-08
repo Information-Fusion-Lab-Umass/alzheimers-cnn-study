@@ -17,6 +17,7 @@ export cmd="python3 main.py \
 --no_write_tensorboard \
 --log_to_stdout \
 --no_log_to_file \
+--no_save_best_model \
 --use_gpu \
 --dataset_size_limit 8 \
 --image_columns skull_intact_path \

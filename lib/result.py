@@ -1,3 +1,4 @@
+import torch
 from pdb import set_trace
 
 class Result(object):
@@ -7,7 +8,18 @@ class Result(object):
         self.labels = labels
 
     def accuracy(self):
-        correct = (self.predictions == self.labels).sum().item()
+        num_correct = (self.predictions == self.labels).sum().item()
         total = len(self.predictions)
 
-        return (correct * 1.0) / total
+        return (num_correct * 1.0) / total
+
+    def accuracy_by_class(self):
+        classes = torch.cat([self.predictions, self.labels]).unique()
+        acc = {}
+
+        for c in classes:
+            targets = self.labels == c
+            num_correct = (self.predictions == self.labels).sum().item()
+            acc[c] =  num_correct * 1.0 / targets.sum().item()
+
+        return acc

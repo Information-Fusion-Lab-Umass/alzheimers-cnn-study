@@ -51,6 +51,12 @@ def _parse_main_arguments():
                         default=False,
                         help="Whether to write logs to a file.")
 
+    parser.add_argument("--save_best_model",
+                        dest="save_best_model",
+                        action="store_true",
+                        default=False,
+                        help="Whether to save the best model weights (lowest validation loss or highest validation accuracy) to be used for testing.")
+
     parser.add_argument("--log_to_stdout",
                         dest="log_to_stdout",
                         action="store_true",
