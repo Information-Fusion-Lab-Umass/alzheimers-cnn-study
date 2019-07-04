@@ -83,7 +83,7 @@ def _parse_main_arguments():
 
     parser.add_argument("--data_path",
                         type=str,
-                        default="outputs/data_mapping.py",
+                        default="data/data_mapping.py",
                         help="Where the mapping file that points to where the MRI data path is located")
 
     parser.add_argument("--image_columns",

@@ -19,18 +19,19 @@ export cmd="python3 main.py \
 --no_log_to_file \
 --no_save_best_model \
 --use_gpu \
---dataset_size_limit 8 \
---data_path outputs/data_mapping.pickle \
---image_columns skull_intact_path \
+--dataset_size_limit 64 \
+--data_path data/BET_data_mapping_final.pickle \
+--image_columns brain_mri_path \
 --label_column DX \
 --brain_mask_path=$MASK_ICV_PATH \
 --validation_split 0.2 \
 --testing_split 0.2 \
 --num_workers 0 \
+--engine wang_3d \
 --pretrain_optim_lr 0.001 \
 --pretrain_optim_wd 0.01 \
 --pretrain_batch_size 2 \
---train_epochs 1 \
+--train_epochs 5 \
 --train_optim_lr 0.001 \
 --train_optim_wd 0.01 \
 --train_batch_size 4 \

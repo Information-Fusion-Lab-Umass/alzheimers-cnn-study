@@ -333,7 +333,7 @@ if __name__ == "__main__":
                     help=f"Root of the directory that contains the CNN features. Optional.")
 
     parser.add_argument("--output_path",
-                    default="../outputs/data_mapping",
+                    default="../data/data_mapping",
                     type=str,
                     help=f"Path of the output file.")
 
