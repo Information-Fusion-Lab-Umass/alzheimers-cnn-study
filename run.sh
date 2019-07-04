@@ -20,6 +20,7 @@ export cmd="python3 main.py \
 --no_save_best_model \
 --use_gpu \
 --dataset_size_limit 8 \
+--data_path outputs/data_mapping.pickle \
 --image_columns skull_intact_path \
 --label_column DX \
 --brain_mask_path=$MASK_ICV_PATH \

@@ -25,7 +25,7 @@ class DatasetBase(Dataset):
         self.image_columns = config.image_columns
 
         shuffle = kwargs.get("shuffle", False)
-        mapping_path = "outputs/data_mapping.pickle"
+        mapping_path = config.data_path
 
         if not os.path.exists(mapping_path):
             raise FileNotFoundError(f"Mapping file \"{mapping_path}\" does not exist! Run \"mapping.py\" script in the \"util/\" directory to generate the mapping pickle file.")

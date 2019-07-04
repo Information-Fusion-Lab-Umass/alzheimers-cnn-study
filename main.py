@@ -79,6 +79,11 @@ def _parse_main_arguments():
                         default=-1,
                         help="Limits the size of the data used for experiment, used for debugging purposes. Set to -1 to use the whole set.")
 
+    parser.add_argument("--data_path",
+                        type=str,
+                        default="outputs/data_mapping.py",
+                        help="Where the mapping file that points to where the MRI data path is located")
+
     parser.add_argument("--image_columns",
                         type=str,
                         nargs="+",
