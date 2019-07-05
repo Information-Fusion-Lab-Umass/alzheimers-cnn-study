@@ -51,11 +51,11 @@ class EngineBase(object):
                   loss.detach().item(), \
                   output.detach().cpu()
 
-    def train(self):
+    def train(self, fold_i):
         model = self.model.to(device=self.device)
         model.train()
 
-        self.dataset.load_split("train")
+        self.dataset.load_split("train", fold_i)
 
         loader_params = {
             "batch_size": self.config.train_batch_size,
@@ -90,11 +90,11 @@ class EngineBase(object):
                   loss.detach().item(), \
                   pred.detach().cpu()
 
-    def validate(self):
+    def validate(self, fold_i):
         model = self.model.to(device=self.device)
         model.eval()
 
-        self.dataset.load_split("valid")
+        self.dataset.load_split("valid", fold_i)
 
         loader_params = {
             "batch_size": self.config.validate_batch_size,

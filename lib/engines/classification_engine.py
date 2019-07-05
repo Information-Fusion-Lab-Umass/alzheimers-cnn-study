@@ -11,7 +11,7 @@ class ClassificationEngine(EngineBase):
         super().__init__(config, tb, logger, **kwargs)
         self.weight_folder = f"outputs/weights/{self.config.run_id}"
 
-    def train(self):
+    def train(self, fold_i):
         num_epochs = self.config.train_epochs
         lowest_validation_loss = float("inf")
         highest_validation_acc = float("-inf")
@@ -28,8 +28,8 @@ class ClassificationEngine(EngineBase):
                 labels = []
                 predictions = []
 
-                iteration_results = super().train() \
-                    if task == "train" else super().validate()
+                iteration_results = super().train(fold_i) \
+                    if task == "train" else super().validate(fold_i)
 
                 for x, y, loss, pred in iteration_results:
                     losses.append(loss)

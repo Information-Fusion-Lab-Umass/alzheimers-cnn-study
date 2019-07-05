@@ -24,7 +24,7 @@ export cmd="python3 main.py \
 --image_columns brain_mri_path \
 --label_column DX \
 --brain_mask_path=$MASK_ICV_PATH \
---validation_split 0.2 \
+--training_crossval_folds 5
 --testing_split 0.2 \
 --num_workers 0 \
 --engine wang_3d \

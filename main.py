@@ -23,7 +23,10 @@ def main(config, tb, logger):
         raise Exception(f"Unknown or unsupported engine: {config.engine}.")
 
     engine = Engine(config, tb, logger)
-    engine.train()
+    k_folds = config.training_crossval_folds
+    for fold_i in range(k_folds):
+        engine.train(fold_i)
+        engine.val(fold_i)
     engine.test()
 
 def _parse_main_arguments():
@@ -106,10 +109,10 @@ def _parse_main_arguments():
                         default=8,
                         help="Number of workers (processes) for the PyTorch dataloader.")
 
-    parser.add_argument("--validation_split",
-                        type=float,
-                        default=0.2,
-                        help="Decimal percentage of data allocated to validation.")
+    parser.add_argument("--training_crossval_folds",
+                        type=int,
+                        default=5,
+                        help="K-fold cross-validation for the training dataset.")
 
     parser.add_argument("--testing_split",
                         type=float,

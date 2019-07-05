@@ -7,8 +7,6 @@ from torchvision import transforms as T
 from torch.utils.data import Dataset
 from pdb import set_trace
 
-from .dataset_splitters import AllDataSplitter
-
 class DatasetBase(Dataset):
     LABEL_MAPPING = ["CN", "MCI", "AD"]
     VALID_SPLIT = ["train", "valid", "test", "all"]
@@ -31,9 +29,9 @@ class DatasetBase(Dataset):
             raise FileNotFoundError(f"Mapping file \"{mapping_path}\" does not exist! Run \"mapping.py\" script in the \"util/\" directory to generate the mapping pickle file.")
 
         self.dataframe = self._load_data(mapping_path)
+        self.fold_dataframe = None
 
         self.split_config = {
-            "valid_split": config.validation_split,
             "test_split": config.testing_split
         }
 
@@ -50,10 +48,7 @@ class DatasetBase(Dataset):
         self.data_idx = []
 
     def __len__(self):
-        if len(self.data_idx) == 0:
-            self.logger.warn("Len of the dataset is 0, make sure to call load_split() methods before iterating through the dataset.")
-
-        return len(self.data_idx)
+        return self.fold_dataframe.shape[0] 
 
     def __getitem__(self, idx):
         return None
@@ -109,27 +104,28 @@ class DatasetBase(Dataset):
 
         return df
 
-    def load_split(self, split, method="split_all_data"):
-        assert split in self.VALID_SPLIT, \
-            f"Invalid split argument: {split}, valid options are: {self.VALID_SPLIT}"
+    def load_split(self, split, fold_i=4):
+        assert split in self.VALID_SPLIT, "splitting methodology not valid"
 
-        if split == "all":
-            self.data_idx = list(range(self.dataframe))
-
-        # In the format of [ (index, label), (index, label), ... ]
-        reduced_dataset = list(self.dataframe["DX"].to_dict().items())
-
-        valid_ratio = self.split_config["valid_split"]
+        df_len = self.dataframe.shape[0]
         test_ratio = self.split_config["test_split"]
-        train_ratio = 1.0 - valid_ratio - test_ratio
-        split_ratio = [ train_ratio, valid_ratio, test_ratio ]
+        k = self.config.training_crossval_folds
 
-        if method == "split_all_data":
-            splitter = AllDataSplitter(reduced_dataset, split_ratio)
-        else:
-            raise Exception(f"Split method {method} not recognized or supported.")
+        if split == "train" or split == "val":
+            self.fold_dataframe = self.dataframe[0 : int((1-test_ratio) * df_len)]
+            if split == "train":
+                self.fold_dataframe = self.dataframe[0 : int(fold_i * df_len / k)].append(\
+				self.dataframe[int((fold_i+1) * df_len / k) : -1], ignore_index=True)
+            elif split == "val":
+                self.fold_dataframe = self.dataframe[int(fold_i * df_len / k) : int((fold_i+1) * df_len / k)]
+        elif split == "test":
+            self.fold_dataframe = self.dataframe[int((1-test_ratio) * df_len) : -1]
+       
+        if self.config.dataset_size_limit != -1:
+            self.logger.warn(f"ENFORCING DATASET SIZE LIMIT OF {self.config.dataset_size_limit}.")
+            self.fold_dataframe[:self.config.dataset_size_limit]
 
-        train_split, valid_split, test_split = splitter()
+        return
 
         self.logger.info(
             f"Splitting dataset for \"{split}\" split and method \"{method}\".")
@@ -148,16 +144,3 @@ class DatasetBase(Dataset):
             f"MCI: {len(list(filter(lambda x: x[1]=='MCI',test_split)))}, "
             f"AD: {len(list(filter(lambda x: x[1]=='AD',test_split)))}"
         )
-
-        if split == "train":
-            self.data_idx = list(map(lambda x: x[0], train_split))
-        elif split == "valid":
-            self.data_idx = list(map(lambda x: x[0], valid_split))
-        elif split == "test":
-            self.data_idx = list(map(lambda x: x[0], test_split))
-
-        size_limit = self.config.dataset_size_limit
-
-        if size_limit != -1:
-            self.logger.warn(f"ENFORCING DATASET SIZE LIMIT OF {size_limit}.")
-            self.data_idx = self.data_idx[:size_limit]
