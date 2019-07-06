@@ -19,8 +19,7 @@ export cmd="python3 main.py \
 --no_log_to_file \
 --no_save_best_model \
 --use_gpu \
---dataset_size_limit 64 \
---data_path data/BET_data_mapping_final.pickle \
+--data_path data/NDC_BET_splitByMRI_data.csv \
 --image_columns brain_mri_path \
 --label_column DX \
 --brain_mask_path=$MASK_ICV_PATH \
@@ -31,13 +30,13 @@ export cmd="python3 main.py \
 --pretrain_optim_lr 0.001 \
 --pretrain_optim_wd 0.01 \
 --pretrain_batch_size 2 \
---train_epochs 5 \
+--train_epochs 10 \
 --train_optim_lr 0.001 \
 --train_optim_wd 0.01 \
 --train_batch_size 4 \
 --validate_batch_size 8 \
 --test_batch_size 8"
-
+#--dataset_size_limit 64 \
 echo ""
 echo "Executing \"$cmd\""
 echo ""

@@ -1,6 +1,7 @@
 import os
 import pickle
 import traceback
+import pandas as pd
 import nibabel as nib
 
 from torchvision import transforms as T
@@ -9,7 +10,7 @@ from pdb import set_trace
 
 class DatasetBase(Dataset):
     LABEL_MAPPING = ["CN", "MCI", "AD"]
-    VALID_SPLIT = ["train", "valid", "test", "all"]
+    VALID_SPLIT = ["train", "val", "test", "all"]
     VALID_TASKS = ["pretrain", "classify"]
     SPLIT_METHOD = [
         "split_all_data",
@@ -90,9 +91,8 @@ class DatasetBase(Dataset):
     def _load_data(self, path):
         """Load data from the mapping file.
         """
-        with open(path, "rb") as file:
-            df = pickle.load(file)
-
+        df = pd.read_csv(path)
+        
         # filter out rows with empty image path
         for i in range(len(self.image_columns)):
             df = df[df[self.image_columns[i]].notnull()].reset_index(drop=True)

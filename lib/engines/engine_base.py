@@ -94,7 +94,7 @@ class EngineBase(object):
         model = self.model.to(device=self.device)
         model.eval()
 
-        self.dataset.load_split("valid", fold_i)
+        self.dataset.load_split("val", fold_i)
 
         loader_params = {
             "batch_size": self.config.validate_batch_size,
