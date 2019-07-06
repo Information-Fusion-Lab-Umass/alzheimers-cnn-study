@@ -168,13 +168,19 @@ class EngineBase(object):
 
         optim_params = {
             "lr": self.config.train_optim_lr,
-            "weight_decay": self.config.train_optim_wd
+            "weight_decay": self.config.train_optim_wd,
+            "momentum": self.config.train_momentum
         }
 
         self.logger.info(f"Using training optimizer with the following parameters: {optim_params}")
 
-        self.train_optim = \
-            optim.Adam(self.model.parameters(), **optim_params)
+        if self.config.optimizer == "Adam":
+            del optim_params["momentum"]
+            self.train_optim = \
+                optim.Adam(self.model.parameters(), **optim_params)
+        elif self.config.optimizer == "SGD":
+            self.train_optim = \
+                optim.SGD(self.model.parameters(), **optim_params)
 
     def setup_device(self, device=None):
         """ Setups the device (CPU vs GPU) for the engine.

@@ -158,6 +158,11 @@ def _parse_main_arguments():
                         default=2,
                         help="Batch size for training.")
 
+    parser.add_argument("--train_momentum",
+                        type=float,
+                        default=1.0,
+                        help="Momentum for SGD, ignore for Adam optimizer.")
+
     parser.add_argument("--validate_batch_size",
                         type=int,
                         default=2,
@@ -167,6 +172,11 @@ def _parse_main_arguments():
                         type=int,
                         default=2,
                         help="Batch size for testing.")
+   
+    parser.add_argument("--optimizer",
+                        type=str,
+                        default="Adam",
+                        help="Adam or SGD.")
 
     args, unknown = parser.parse_known_args()
 

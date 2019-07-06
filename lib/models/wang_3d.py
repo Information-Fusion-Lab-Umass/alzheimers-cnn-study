@@ -33,8 +33,8 @@ class Wang3D(nn.Module):
         num_classes = kwargs.get("num_classes", 3)
         num_channels = kwargs.get("num_channels", 1)
         num_blocks = kwargs.get("num_blocks", [1, 1, 1, 1, 1])
-        class_dropout = kwargs.get("class_dropout", 0.0)
-        cnn_dropout = kwargs.get("cnn_dropout", 0.0)
+        class_dropout = kwargs.get("class_dropout", 0.2)
+        cnn_dropout = kwargs.get("cnn_dropout", 0.2)
         self.sparsity = kwargs.get("sparsity", 0.0)
 
         # input 145, output 14

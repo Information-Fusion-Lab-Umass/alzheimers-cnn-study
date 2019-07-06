@@ -20,9 +20,9 @@ export cmd="python3 main.py \
 --no_save_best_model \
 --use_gpu \
 --data_path data/NDC_BET_splitByMRI_data.csv \
+--brain_mask_path=$MASK_ICV_PATH \
 --image_columns brain_mri_path \
 --label_column DX \
---brain_mask_path=$MASK_ICV_PATH \
 --training_crossval_folds 5
 --testing_split 0.2 \
 --num_workers 0 \
@@ -30,13 +30,15 @@ export cmd="python3 main.py \
 --pretrain_optim_lr 0.001 \
 --pretrain_optim_wd 0.01 \
 --pretrain_batch_size 2 \
---train_epochs 10 \
---train_optim_lr 0.001 \
---train_optim_wd 0.01 \
---train_batch_size 4 \
---validate_batch_size 8 \
---test_batch_size 8"
-#--dataset_size_limit 64 \
+--train_epochs 20 \
+--train_optim_lr 0.01 \
+--train_optim_wd 0.0005 \
+--train_batch_size 10 \
+--train_momentum 0.9 \
+--validate_batch_size 10 \
+--test_batch_size 10 \
+--optimizer SGD"
+
 echo ""
 echo "Executing \"$cmd\""
 echo ""
