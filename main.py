@@ -24,9 +24,13 @@ def main(config, tb, logger):
 
     engine = Engine(config, tb, logger)
     k_folds = config.training_crossval_folds
+    val_acc = 0.0
     for fold_i in range(k_folds):
-        engine.train(fold_i)
-        engine.val(fold_i)
+        acc = engine.train(fold_i)
+        logger.info("fold " + str(fold_i) + ": " + str(acc))
+        val_acc += acc
+    val_acc /= k_folds
+    logger.info("Cross-validation Accuracy: " + str(val_acc))
     engine.test()
 
 def _parse_main_arguments():

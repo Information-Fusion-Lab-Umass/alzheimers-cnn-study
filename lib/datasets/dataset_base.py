@@ -54,9 +54,9 @@ class DatasetBase(Dataset):
         return None
 
     def process_item(self, idx):
-        paths = [ self.dataframe.iloc[idx][col] for col in self.image_columns ]
+        paths = [ self.fold_dataframe.iloc[idx][col] for col in self.image_columns ]
         images = []
-        label = self.dataframe.iloc[idx][self.config.label_column]
+        label = self.fold_dataframe.iloc[idx][self.config.label_column]
 
         for path in paths:
             try:
@@ -123,13 +123,8 @@ class DatasetBase(Dataset):
        
         if self.config.dataset_size_limit != -1:
             self.logger.warn(f"ENFORCING DATASET SIZE LIMIT OF {self.config.dataset_size_limit}.")
-            self.fold_dataframe[:self.config.dataset_size_limit]
-
-        return
-
-        self.logger.info(
-            f"Splitting dataset for \"{split}\" split and method \"{method}\".")
-
+            self.fold_dataframe = self.fold_dataframe[:self.config.dataset_size_limit]
+        return 
         self.logger.debug(
             f"\n\tTraining size - {len(train_split)}"
             f"\n\t\tCN: {len(list(filter(lambda x: x[1]=='CN',train_split)))}, "

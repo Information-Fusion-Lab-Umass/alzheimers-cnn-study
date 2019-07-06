@@ -15,7 +15,7 @@ class ClassificationEngine(EngineBase):
         num_epochs = self.config.train_epochs
         lowest_validation_loss = float("inf")
         highest_validation_acc = float("-inf")
-
+        
         for epoch in range(num_epochs):
             self.logger.info(
                 f"========== Epoch {epoch + 1}/{num_epochs} ==========\n"
@@ -49,23 +49,28 @@ class ClassificationEngine(EngineBase):
                     f"\n\t Acc: {round(acc, 4)}"
                 )
 
-                if task == "validate" and self.config.save_best_model:
-                    mkdir(self.weight_folder)
-
+                if task == "validate":
                     if acc > highest_validation_acc:
-                        self.logger.info(
-                            "Highest validation accuracy! Saving...")
-                        self.save_current_model(
-                            f"{self.weight_folder}/{highest_validation_acc}.pt")
-                    if loss < lowest_validation_loss:
-                        self.logger.info(
-                            "Lowest validation loss! Saving...")
-                        self.save_current_model(
-                            f"{self.weight_folder}/{lowest_validation_loss}.pt")
+                        highest_validation_acc = acc
+                    if  self.config.save_best_model:
+                        mkdir(self.weight_folder)
+
+                        if acc > highest_validation_acc:
+                            self.logger.info(
+                                "Highest validation accuracy! Saving...")
+                            self.save_current_model(
+                                f"{self.weight_folder}/{highest_validation_acc}.pt")
+                        if loss < lowest_validation_loss:
+                            self.logger.info(
+                                "Lowest validation loss! Saving...")
+                            self.save_current_model(
+                                f"{self.weight_folder}/{lowest_validation_loss}.pt")
 
             self.logger.info(
                 f"========== End epoch {epoch + 1}/{num_epochs} ==========\n"
             )
+
+        return highest_validation_acc
 
     def test(self):
         labels = []

@@ -54,7 +54,7 @@ class EngineBase(object):
     def train(self, fold_i):
         model = self.model.to(device=self.device)
         model.train()
-
+        
         self.dataset.load_split("train", fold_i)
 
         loader_params = {
@@ -63,9 +63,9 @@ class EngineBase(object):
             "collate_fn": invalid_collate,
             "shuffle": True
         }
-
+        
         loader = DataLoader(self.dataset, **loader_params)
-
+        
         for num_iter, (x, y) in enumerate(tqdm(loader)):
             if len(x) < torch.cuda.device_count() * 2: # skip for BatchNorm1d
                 continue
