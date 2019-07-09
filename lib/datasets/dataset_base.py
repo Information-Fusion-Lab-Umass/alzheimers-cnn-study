@@ -1,6 +1,7 @@
 import os
 import pickle
 import traceback
+import numpy as np
 import pandas as pd
 import nibabel as nib
 
@@ -69,7 +70,9 @@ class DatasetBase(Dataset):
                 if self.config.engine == "soes_3d":
                     x, y, z = image.shape
                     image = zoom(image, (116./x, 130./y, 83./z))
-                
+                    if np.random.uniform() < 0.5:
+                        image = np.flip(image, 1)
+
                 if self.brain_mask is not None:
                     image *= self.brain_mask
 

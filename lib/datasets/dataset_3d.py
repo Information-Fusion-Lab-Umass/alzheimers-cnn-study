@@ -10,11 +10,11 @@ class Dataset3D(DatasetBase):
         super().__init__(config, logger, **kwargs)
 
         self.transforms = T.Compose([
-            T.ToTensor()#,
-            #PadToSameDim(3),
-            #NaNToNum(),
-            #RangeNormalize(),
-            #MeanStdNormalize()
+            T.ToTensor(),
+            PadToSameDim(3),
+            NaNToNum(),
+            RangeNormalize(),
+            MeanStdNormalize()
         ])
 
     def __getitem__(self, idx):
