@@ -83,6 +83,7 @@ class EngineBase(object):
                 loss = model.loss(pred, y)
 
             loss.backward()
+            #torch.nn.utils.clip_grad_value_(model.parameters(), 2.5)
             self.train_optim.step()
 
             yield x.detach().cpu(), \

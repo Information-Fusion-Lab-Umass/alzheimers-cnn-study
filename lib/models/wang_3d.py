@@ -5,27 +5,17 @@ import torch.nn.functional as F
 from pdb import set_trace
 
 class Wang3D(nn.Module):
-    '''Super deep autoencoder network with pretraining routine.
+    ''' Replicating Wang et al. (2018) ICMLA paper. 
 
     MUST RUN ON M40 GPU!
-        - One channel (Starting with 64 channels)
-            - Classification-only (classification batch size):
-                |_ 2 images per GPU with num_blocks [1,1,1,1,1]
-        - Three channels
-            - Classification-only (classification batch size):
-                |_ 4 images per GPU with num_blocks [1,1,1,1,1]
-                |_ 3 images per GPU with num_blocks [2,2,2,2,2]
-            - Reconstruction-only (pre-training batch size):
-                |_ 2 images per GPU with num_blocks [1,1,1,1,1]
-                |_ 3 images per GPU with num_blocks [1,1,0,0,0]
-            - Classification with frozen weights
-                |_ (SGD) 10 images per GPU with num_blocks [1,1,1,1,1]
-                |_ (ADAM) 8 images per GPU with num_blocks [1,1,1,1,1]
-
 
     Notes:
-        - pre-training: 15-20 epochs leads to convergence,
-        - training: 210 epochs?
+        - Growth rate for the # of new feature-volumes increased at each layer
+            |- 24 is the best, as reported in fig 3.
+        - Two dense blocks
+            |- Total depth of ~20 layers, as reported in fig 4. 
+        - Reduction for the 1x1x1 convolutions
+            |- Used the degree of compression theta=0.7, as reported in fig 5.
     '''
     def __init__(self, **kwargs):
         super().__init__()
@@ -33,8 +23,8 @@ class Wang3D(nn.Module):
         num_classes = kwargs.get("num_classes", 3)
         num_channels = kwargs.get("num_channels", 1)
         num_blocks = kwargs.get("num_blocks", [1, 1, 1, 1, 1])
-        class_dropout = kwargs.get("class_dropout", 0.2)
-        cnn_dropout = kwargs.get("cnn_dropout", 0.2)
+        class_dropout = kwargs.get("class_dropout", 0.1)
+        cnn_dropout = kwargs.get("cnn_dropout", 0.1)
         self.sparsity = kwargs.get("sparsity", 0.0)
 
         # input 145, output 14
@@ -44,21 +34,21 @@ class Wang3D(nn.Module):
         #num_layers, num_input_features, bn_size, growth_rate, drop_rate
 
         # input 143, output 143
-        self.block1 = _DenseBlock(8, 24, 4, 24, cnn_dropout-0.1)
+        self.block1 = _DenseBlock(8, 24, 4, 24, cnn_dropout-0.05)
         # input 143, output 71
-        self.conv2 = nn.Conv3d(216, 240, kernel_size=3, stride=2, padding=0)
+        self.conv2 = nn.Conv3d(216, 151, kernel_size=3, stride=2, padding=0)
         self.pool2 = nn.MaxPool3d(2, stride=2)
 
         # input 71, output 71
-        self.block2 = _DenseBlock(9, 240, 4, 24, cnn_dropout)
+        self.block2 = _DenseBlock(9, 151, 4, 24, cnn_dropout)
         # input 71, output 35
-        self.conv3 = nn.Conv3d(456, 480, kernel_size=3, stride=2, padding=0)
+        self.conv3 = nn.Conv3d(367, 257, kernel_size=3, stride=2, padding=0)
 
         self.classification_dropout = nn.Dropout(class_dropout)
 
         classification_layers = [
-            nn.Linear(12960, 1000),
-            #nn.Linear(19968,1000),
+            #nn.Linear(12960, 1000),
+            nn.Linear(3084,1000),
             nn.Linear(1000, 100),
             nn.Linear(100, num_classes)
         ]

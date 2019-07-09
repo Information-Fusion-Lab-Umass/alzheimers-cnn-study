@@ -21,6 +21,13 @@ class ClassificationEngine(EngineBase):
                 f"========== Epoch {epoch + 1}/{num_epochs} ==========\n"
             )
 
+            if self.config.lrate_scheduler == "poly":
+                #self.train_scheduler.step()
+                for param_group in self.train_optim.param_groups:
+                    param_group['lr'] = self.config.train_optim_lr * \
+                                        (1 - epoch / num_epochs)**0.9
+                    print(param_group['lr'])
+
             for task in ["train", "validate"]:
                 self.logger.info(f"Running {task}...")
 

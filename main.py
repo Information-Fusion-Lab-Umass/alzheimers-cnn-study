@@ -19,6 +19,8 @@ def main(config, tb, logger):
         from lib.engines.resnet_3d_engine import ResNet3DEngine as Engine
     elif config.engine == "wang_3d":
         from lib.engines.wang_3d_engine import Wang3DEngine as Engine
+    elif config.engine == "soes_3d":
+        from lib.engines.soes_3d_engine import Soes3DEngine as Engine
     else:
         raise Exception(f"Unknown or unsupported engine: {config.engine}.")
 
@@ -173,6 +175,11 @@ def _parse_main_arguments():
                         default=2,
                         help="Batch size for testing.")
    
+    parser.add_argument("--lrate_scheduler",
+                        type=str,
+                        default="",
+                        help="Learning rate scheduler.")
+
     parser.add_argument("--optimizer",
                         type=str,
                         default="Adam",

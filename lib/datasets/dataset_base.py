@@ -7,6 +7,7 @@ import nibabel as nib
 from torchvision import transforms as T
 from torch.utils.data import Dataset
 from pdb import set_trace
+from scipy.ndimage import zoom
 
 class DatasetBase(Dataset):
     LABEL_MAPPING = ["CN", "MCI", "AD"]
@@ -65,6 +66,10 @@ class DatasetBase(Dataset):
                            .get_fdata() \
                            .squeeze()
 
+                if self.config.engine == "soes_3d":
+                    x, y, z = image.shape
+                    image = zoom(image, (116./x, 130./y, 83./z))
+                
                 if self.brain_mask is not None:
                     image *= self.brain_mask
 
@@ -92,7 +97,9 @@ class DatasetBase(Dataset):
         """Load data from the mapping file.
         """
         df = pd.read_csv(path)
-        
+        #with open(path, "rb") as f:
+        #    df = pickle.load(f)
+
         # filter out rows with empty image path
         for i in range(len(self.image_columns)):
             df = df[df[self.image_columns[i]].notnull()].reset_index(drop=True)
