@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from pdb import set_trace
 
 class Wang3D(nn.Module):
-    ''' Replicating Wang et al. (2018) ICMLA paper. 
+    ''' Replicating Wang et al. (2018) ICMLA paper.
 
     MUST RUN ON M40 GPU!
 
@@ -13,7 +13,7 @@ class Wang3D(nn.Module):
         - Growth rate for the # of new feature-volumes increased at each layer
             |- 24 is the best, as reported in fig 3.
         - Two dense blocks
-            |- Total depth of ~20 layers, as reported in fig 4. 
+            |- Total depth of ~20 layers, as reported in fig 4.
         - Reduction for the 1x1x1 convolutions
             |- Used the degree of compression theta=0.7, as reported in fig 5.
     '''
@@ -47,8 +47,9 @@ class Wang3D(nn.Module):
         self.classification_dropout = nn.Dropout(class_dropout)
 
         classification_layers = [
-            #nn.Linear(12960, 1000),
-            nn.Linear(3084,1000),
+            # nn.Linear(12960, 1000),
+            # nn.Linear(3084,1000),
+            nn.Linear(6939, 1000), # NDC_BET
             nn.Linear(1000, 100),
             nn.Linear(100, num_classes)
         ]
