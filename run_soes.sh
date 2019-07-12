@@ -19,24 +19,26 @@ export cmd="python3 main.py \
 --no_log_to_file \
 --no_save_best_model \
 --use_gpu \
---data_path data/data_mapping.pickle \
+--data_path data/NDC_BET_splitByMRI_data.csv \
 --brain_mask_path=$MASK_ICV_PATH \
---image_columns skull_intact_path \
+--image_columns brain_mri_path \
 --label_column DX \
 --training_crossval_folds 5
 --testing_split 0.2 \
 --num_workers 0 \
---engine resnet_3d \
+--engine wang_3d \
 --pretrain_optim_lr 0.001 \
 --pretrain_optim_wd 0.01 \
 --pretrain_batch_size 2 \
---train_epochs 10 \
---train_optim_lr 0.001 \
---train_optim_wd 0.01 \
---train_batch_size 6 \
---validate_batch_size 6 \
---test_batch_size 6 \
---optimizer Adam"
+--train_epochs 24 \
+--train_optim_lr 0.01 \
+--train_optim_wd 0.0005 \
+--train_batch_size 10 \
+--train_momentum 0.9 \
+--validate_batch_size 10 \
+--test_batch_size 10 \
+--lrate_scheduler poly \
+--optimizer SGD"
 
 echo ""
 echo "Executing \"$cmd\""
