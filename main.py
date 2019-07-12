@@ -33,7 +33,11 @@ def main(config, tb, logger):
         val_acc += acc
     val_acc /= k_folds
     logger.info("Cross-validation Accuracy: " + str(val_acc))
-    engine.test()
+
+    result = engine.test()
+
+    if config.save_result:
+        result.save_to_file(config.run_id)
 
 def _parse_main_arguments():
     '''Parse the arguments passed to main.py.
@@ -55,6 +59,12 @@ def _parse_main_arguments():
                         action="store_true",
                         default=False,
                         help="Whether to create tensorboard.")
+
+    parser.add_argument("--save_result",
+                        dest="save_result",
+                        action="store_true",
+                        default=False,
+                        help="Whether to save the test results for analysis later.")
 
     parser.add_argument("--log_to_file",
                         dest="log_to_file",
@@ -174,7 +184,7 @@ def _parse_main_arguments():
                         type=int,
                         default=2,
                         help="Batch size for testing.")
-   
+
     parser.add_argument("--lrate_scheduler",
                         type=str,
                         default="",

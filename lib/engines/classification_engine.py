@@ -15,7 +15,7 @@ class ClassificationEngine(EngineBase):
         num_epochs = self.config.train_epochs
         lowest_validation_loss = float("inf")
         highest_validation_acc = float("-inf")
-        
+
         for epoch in range(num_epochs):
             self.logger.info(
                 f"========== Epoch {epoch + 1}/{num_epochs} ==========\n"
@@ -97,3 +97,5 @@ class ClassificationEngine(EngineBase):
             f"Test completed, stats:"
             f"\n\t Acc: {round(result.accuracy(), 4)}"
         )
+
+        return result

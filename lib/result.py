@@ -1,4 +1,6 @@
 import torch
+import pickle
+
 from pdb import set_trace
 
 class Result(object):
@@ -23,3 +25,19 @@ class Result(object):
             acc[c] =  num_correct * 1.0 / targets.sum().item()
 
         return acc
+
+    def save_to_file(self, file_name):
+        state = {
+            "predictions": self.predictions,
+            "labels": self.labels
+        }
+
+        with open(f"{file_name}.result", "wb") as file:
+            pickle.dump(state, file)
+
+    @classmethod
+    def load_from_file(cls, file_name):
+        with open(f"{file_name}.result", "wb") as file:
+            state = pickle.load(file)
+
+        return cls(state["predictions"], state["labels"])
