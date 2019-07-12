@@ -71,7 +71,7 @@ class DatasetBase(Dataset):
                     x, y, z = image.shape
                     image = zoom(image, (116./x, 130./y, 83./z))
                     if np.random.uniform() < 0.5:
-                        image = np.flip(image, 1)
+                        image = np.flip(image, 0)
 
                 if self.brain_mask is not None:
                     image *= self.brain_mask
