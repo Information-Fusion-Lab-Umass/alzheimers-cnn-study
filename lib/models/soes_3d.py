@@ -20,30 +20,27 @@ class Soes3D(nn.Module):
         class_dropout = kwargs.get("class_dropout", 0.1)
         
         # 3^3 x 32 filters
-        self.conv1 = nn.Conv3d(num_channels, 32, kernel_size=3, stride=2,
-                                padding=1)
-        self.pool1 = nn.MaxPool3d(2, stride=2)
+        self.conv1 = nn.Conv3d(num_channels, 32, kernel_size=3, stride=2)
+        self.pool1 = nn.MaxPool3d(2)
 
         # 3^3 x 64 filters
-        self.conv2 = nn.Conv3d(num_channels, 64, kernel_size=3, stride=2,
-                                padding=1)
+        self.conv2 = nn.Conv3d(32, 64, kernel_size=3)
         self.pool2 = nn.MaxPool3d(3, padding=1)
 
         # 3^3 x 128 filters
-        self.conv3 = nn.Conv3d(num_channels, 128, kernel_size=3, stride=2,
-                                padding=1)
+        self.conv3 = nn.Conv3d(64, 128, kernel_size=3)
         self.pool3 = nn.MaxPool3d(4, padding=1)
 
         self.cnn_dropout = nn.Dropout(cnn_dropout)
         self.classification_dropout = nn.Dropout(class_dropout)
-        self.fc = nn.Linear(524288, num_classes)
+        self.fc = nn.Linear(512, num_classes)
 
     def forward(self, x, reconstruct=False):
         l1 = self.pool1(self.conv1(x))
-        l2 = self.pool2(self.conv2(x))
+        l2 = self.pool2(self.conv2(l1))
         l2 = self.cnn_dropout(l2)
-        l3 = self.pool3(self.conv3(x))
-        flattened = l3.view(len(x), -1)
+        l3 = self.pool3(self.conv3(l2))
+        flattened = l3.view(len(l3), -1)
         dropped = self.classification_dropout(flattened)
         return self.fc(dropped)
 
