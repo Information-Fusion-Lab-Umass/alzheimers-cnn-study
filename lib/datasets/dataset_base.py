@@ -66,13 +66,11 @@ class DatasetBase(Dataset):
                 image = nib.load(path) \
                            .get_fdata() \
                            .squeeze()
-
                 if self.config.engine == "soes_3d":
                     x, y, z = image.shape
                     image = zoom(image, (116./x, 130./y, 83./z))
                     if np.random.uniform() < 0.5:
-                        image = np.flip(image, 0)
-
+                        image = np.flip(image, 0).copy()
                 if self.brain_mask is not None:
                     image *= self.brain_mask
 
@@ -102,7 +100,7 @@ class DatasetBase(Dataset):
         df = pd.read_csv(path)
         #with open(path, "rb") as f:
         #    df = pickle.load(f)
-
+       
         # filter out rows with empty image path
         for i in range(len(self.image_columns)):
             df = df[df[self.image_columns[i]].notnull()].reset_index(drop=True)
@@ -111,7 +109,7 @@ class DatasetBase(Dataset):
         target = (df[self.config.label_column] == "LMCI") | \
                  (df[self.config.label_column] == "EMCI")
         df.loc[target, self.config.label_column] = "MCI"
-
+        
         return df
 
     def load_split(self, split, fold_i=4):
@@ -134,6 +132,7 @@ class DatasetBase(Dataset):
         if self.config.dataset_size_limit != -1:
             self.logger.warn(f"ENFORCING DATASET SIZE LIMIT OF {self.config.dataset_size_limit}.")
             self.fold_dataframe = self.fold_dataframe[:self.config.dataset_size_limit]
+        
         return 
         self.logger.debug(
             f"\n\tTraining size - {len(train_split)}"

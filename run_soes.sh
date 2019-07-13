@@ -19,14 +19,14 @@ export cmd="python3 main.py \
 --no_log_to_file \
 --no_save_best_model \
 --use_gpu \
---data_path data/NDC_BET_splitByMRI_data.csv \
+--data_path data/NDJ_soes_splitByMRI_data.csv \
 --brain_mask_path=$MASK_ICV_PATH \
 --image_columns brain_mri_path \
 --label_column DX \
 --training_crossval_folds 5
 --testing_split 0.2 \
 --num_workers 0 \
---engine wang_3d \
+--engine soes_3d \
 --pretrain_optim_lr 0.001 \
 --pretrain_optim_wd 0.01 \
 --pretrain_batch_size 2 \
