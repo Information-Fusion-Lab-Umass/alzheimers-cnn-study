@@ -4,6 +4,8 @@ import uuid
 import torch
 import logging
 
+import numpy as np
+
 from time import time
 from pdb import set_trace
 from argparse import ArgumentParser
@@ -27,13 +29,17 @@ def main(config, tb, logger):
     engine = Engine(config, tb, logger)
     k_folds = config.training_crossval_folds
     val_acc = 0.0
+    val_acc_list = np.array([0.0] * config.train_epochs)
     for fold_i in range(k_folds):
-        acc = engine.train(fold_i)
+        acc, acc_list = engine.train(fold_i)
         logger.info("fold " + str(fold_i) + ": " + str(acc))
         val_acc += acc
+        val_acc_list = np.add(val_acc_list, np.array(acc_list))
     val_acc /= k_folds
+    val_acc_list = np.divide(val_acc_list, k_folds)
     logger.info("Cross-validation Accuracy: " + str(val_acc))
-
+    logger.info(val_acc_list)
+ 
     result = engine.test()
 
     if config.save_result:
@@ -194,6 +200,11 @@ def _parse_main_arguments():
                         type=str,
                         default="Adam",
                         help="Adam or SGD.")
+
+    parser.add_argument("--num_classes",
+                        type=int,
+                        default=3,
+                        help="# classes in predication: AD, MCI, CN.")
 
     args, unknown = parser.parse_known_args()
 

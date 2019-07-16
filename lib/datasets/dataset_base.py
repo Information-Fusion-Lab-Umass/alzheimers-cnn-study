@@ -98,9 +98,9 @@ class DatasetBase(Dataset):
         """Load data from the mapping file.
         """
         df = pd.read_csv(path)
-        #with open(path, "rb") as f:
-        #    df = pickle.load(f)
-       
+        if self.config.num_classes == 2:
+            df = df[(df["DX"]=="AD")|(df["DX"]=="CN")]
+        
         # filter out rows with empty image path
         for i in range(len(self.image_columns)):
             df = df[df[self.image_columns[i]].notnull()].reset_index(drop=True)
@@ -123,16 +123,23 @@ class DatasetBase(Dataset):
             self.fold_dataframe = self.dataframe[0 : int((1-test_ratio) * df_len)]
             df_len = self.fold_dataframe.shape[0]
             if split == "train":
-                self.fold_dataframe = self.fold_dataframe[0 : int(fold_i * df_len / k)].append(\
+                if k == 1:
+                    self.fold_dataframe = self.fold_dataframe
+                else:
+                    self.fold_dataframe = self.fold_dataframe[0 : int(fold_i * df_len / k)].append(\
 				self.fold_dataframe[int((fold_i+1) * df_len / k) : -1], ignore_index=True)
             elif split == "val":
-                self.fold_dataframe = self.fold_dataframe[int(fold_i * df_len / k) : int((fold_i+1) * df_len / k)]
+                if k == 1:
+                    self.fold_dataframe = self.fold_dataframe[-1:]
+                    print(self.fold_dataframe.shape)
+                else:
+                    self.fold_dataframe = self.fold_dataframe[int(fold_i * df_len / k) : int((fold_i+1) * df_len / k)]
         elif split == "test":
             self.fold_dataframe = self.dataframe[int((1-test_ratio) * df_len) : -1]
         if self.config.dataset_size_limit != -1:
             self.logger.warn(f"ENFORCING DATASET SIZE LIMIT OF {self.config.dataset_size_limit}.")
             self.fold_dataframe = self.fold_dataframe[:self.config.dataset_size_limit]
-        
+        print(self.fold_dataframe.shape)
         return 
         self.logger.debug(
             f"\n\tTraining size - {len(train_split)}"

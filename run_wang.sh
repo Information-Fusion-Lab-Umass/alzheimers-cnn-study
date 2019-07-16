@@ -19,7 +19,7 @@ export cmd="python3 main.py \
 --no_log_to_file \
 --no_save_best_model \
 --use_gpu \
---data_path data/NDJ_wang_splitByMRI_data.csv \
+--data_path data/NDJ_wang_splitByPaper_data.csv \
 --brain_mask_path=$MASK_ICV_PATH \
 --image_columns brain_mri_path \
 --label_column DX \
