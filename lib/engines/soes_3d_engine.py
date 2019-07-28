@@ -15,8 +15,8 @@ class Soes3DEngine(ClassificationEngine):
 
     def setup_model(self, from_path=None):
         num_channels = len(self.config.image_columns)
-
-        self.model = Soes3D(num_classes=3, num_channels=num_channels)
+        
+        self.model = Soes3D(num_channels=num_channels)
 
         if from_path is not None:
             self.logger.info(f"Loading weights from {from_path}.")

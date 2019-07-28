@@ -22,7 +22,10 @@ class Result(object):
         for c in classes:
             targets = self.labels == c
             num_correct = (self.predictions == self.labels).sum().item()
-            acc[c] =  num_correct * 1.0 / targets.sum().item()
+            if targets.sum().item() < 0.1:
+                acc[c] = 0.0
+            else:
+                acc[c] =  num_correct * 1.0 / targets.sum().item()
 
         return acc
 

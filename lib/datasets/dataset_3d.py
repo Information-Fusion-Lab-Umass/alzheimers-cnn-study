@@ -30,5 +30,5 @@ class Dataset3D(DatasetBase):
             stacked_image = torch.stack(transformed_images)
         else:
             stacked_image = transformed_images[0][None, :, :, :]
-
+        
         return stacked_image, encoded_label

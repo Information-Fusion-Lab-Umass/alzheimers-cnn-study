@@ -36,20 +36,18 @@ class Wang3D(nn.Module):
         # input 143, output 143
         self.block1 = _DenseBlock(8, 24, 4, 24, cnn_dropout-0.05)
         # input 143, output 71
-        self.conv2 = nn.Conv3d(216, 151, kernel_size=3, stride=2, padding=0)
+        self.conv2 = nn.Conv3d(216, 151, kernel_size=1, stride=1, padding=0)
         self.pool2 = nn.MaxPool3d(2, stride=2)
 
         # input 71, output 71
         self.block2 = _DenseBlock(9, 151, 4, 24, cnn_dropout)
         # input 71, output 35
-        self.conv3 = nn.Conv3d(367, 257, kernel_size=3, stride=2, padding=0)
+        self.conv3 = nn.Conv3d(367, 257, kernel_size=1, stride=1, padding=0)
 
         self.classification_dropout = nn.Dropout(class_dropout)
 
         classification_layers = [
-            # nn.Linear(12960, 1000),
-            # nn.Linear(3084,1000),
-            nn.Linear(6939, 1000), # NDC_BET
+            nn.Linear(404261, 1000), 
             nn.Linear(1000, 100),
             nn.Linear(100, num_classes)
         ]

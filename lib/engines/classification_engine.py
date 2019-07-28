@@ -15,7 +15,7 @@ class ClassificationEngine(EngineBase):
         num_epochs = self.config.train_epochs
         lowest_validation_loss = float("inf")
         highest_validation_acc = float("-inf")
-
+        acc_list = []
         for epoch in range(num_epochs):
             self.logger.info(
                 f"========== Epoch {epoch + 1}/{num_epochs} ==========\n"
@@ -55,13 +55,13 @@ class ClassificationEngine(EngineBase):
                     f"\n\t Loss: {loss}"
                     f"\n\t Acc: {round(acc, 4)}"
                 )
-
+                
                 if task == "validate":
+                    acc_list.append(acc)
                     if acc > highest_validation_acc:
                         highest_validation_acc = acc
                     if  self.config.save_best_model:
                         mkdir(self.weight_folder)
-
                         if acc > highest_validation_acc:
                             self.logger.info(
                                 "Highest validation accuracy! Saving...")
@@ -77,7 +77,7 @@ class ClassificationEngine(EngineBase):
                 f"========== End epoch {epoch + 1}/{num_epochs} ==========\n"
             )
 
-        return highest_validation_acc
+        return highest_validation_acc, acc_list
 
     def test(self):
         labels = []
