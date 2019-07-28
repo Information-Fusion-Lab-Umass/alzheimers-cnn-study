@@ -51,7 +51,7 @@ class DatasetBase(Dataset):
         self.data_idx = []
 
     def __len__(self):
-        return self.fold_dataframe.shape[0] 
+        return self.fold_dataframe.shape[0]
 
     def __getitem__(self, idx):
         return None
@@ -99,9 +99,11 @@ class DatasetBase(Dataset):
     def _load_data(self, path):
         """Load data from the mapping file.
         """
-        df = pd.read_csv(path)
-        #with open(path, "rb") as f:
-        #    df = pickle.load(f)
+        if path[-3:] == "csv":
+            df = pd.read_csv(path)
+        else:
+            with open(path, "rb") as f:
+                df = pickle.load(f)
 
         # filter out rows with empty image path
         for i in range(len(self.image_columns)):
@@ -134,7 +136,7 @@ class DatasetBase(Dataset):
         if self.config.dataset_size_limit != -1:
             self.logger.warn(f"ENFORCING DATASET SIZE LIMIT OF {self.config.dataset_size_limit}.")
             self.fold_dataframe = self.fold_dataframe[:self.config.dataset_size_limit]
-        return 
+        return
         self.logger.debug(
             f"\n\tTraining size - {len(train_split)}"
             f"\n\t\tCN: {len(list(filter(lambda x: x[1]=='CN',train_split)))}, "
