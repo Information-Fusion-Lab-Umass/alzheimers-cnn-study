@@ -23,6 +23,8 @@ def main(config, tb, logger):
         from lib.engines.wang_3d_engine import Wang3DEngine as Engine
     elif config.engine == "soes_3d":
         from lib.engines.soes_3d_engine import Soes3DEngine as Engine
+    elif config.engine == "jain_2d":
+        from lib.engines.jain_2d_engine import Jain2DEngine as Engine
     else:
         raise Exception(f"Unknown or unsupported engine: {config.engine}.")
 

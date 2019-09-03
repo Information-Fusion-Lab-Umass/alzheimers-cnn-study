@@ -182,6 +182,9 @@ class EngineBase(object):
         elif self.config.optimizer == "SGD":
             self.train_optim = \
                 optim.SGD(self.model.parameters(), **optim_params)
+        elif self.config.optimizer == "RMSprop":
+            self.train_optim = \
+                optim.rmsprop(self.model.parameters(), **optim_params)
 
     def setup_device(self, device=None):
         """ Setups the device (CPU vs GPU) for the engine.
