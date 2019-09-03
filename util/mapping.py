@@ -1,15 +1,12 @@
 import os
 import pickle
-import pandas as pd
-import numpy as np
-
-from itertools import chain
-from time import time
-from fnmatch import fnmatch
-from multiprocessing import Pool
 from argparse import ArgumentParser
+from itertools import chain
+from multiprocessing import Pool
+from time import time
 
-from pdb import set_trace
+import numpy as np
+import pandas as pd
 
 '''Script to generate label mapping for normalized images.
 
@@ -21,6 +18,7 @@ NUM_CPU = os.cpu_count()
 FILE_EXTENSION = "*.nii.gz"
 OUTPUT_FORMATS = ["json", "pickle"]
 
+
 def lsdir(path):
     '''Lists all of the files in the specified path.
 
@@ -28,6 +26,7 @@ def lsdir(path):
     '''
     files = os.listdir(path)
     return list(filter(lambda name: name[0] != ".", files))
+
 
 def get_image_paths(root, **kwargs):
     '''Generates and return a pandas.DataFrame containing all of the subjects with their respective image paths.
@@ -52,24 +51,27 @@ def get_image_paths(root, **kwargs):
     # root variable cannot be accessed in list comprehension
     path_pairs = list(zip([root] * len(paths), paths))
 
-    if "sub-ADNI" in paths[0]: # root contains subjects
-        subject_paths = [ f"{r}/{sdir}" for r, sdir in path_pairs ]
-    else: # root has "tissue_seg_0" to "tissue_seg_n"
-        subset_paths = [ f"{r}/{sdir}/subjects" for r, sdir in path_pairs ]
+    if "sub-ADNI" in paths[0]:  # root contains subjects
+        subject_paths = [f"{r}/{sdir}" for r, sdir in path_pairs]
+    else:  # root has "tissue_seg_0" to "tissue_seg_n"
+        subset_paths = [f"{r}/{sdir}/subjects" for r, sdir in path_pairs]
+
         def list_subject_dirs(subset_path):
             subjects = lsdir(subset_path)
             return list(map(lambda spath: f"{subset_path}/{spath}", subjects))
+
         subject_paths = list(chain(*map(list_subject_dirs, subset_paths)))
 
-    if max_proc <= 1: # for debugging
+    if max_proc <= 1:  # for debugging
         print("Fetching image paths with a single process.")
-        dfs = [ get_image_path(spath) for spath in subject_paths ]
+        dfs = [get_image_path(spath) for spath in subject_paths]
     else:
         print(f"Fetching image paths with {num_proc} processes.")
         with Pool(num_proc) as pool:
             dfs = pool.map(get_image_path, subject_paths)
 
     return pd.concat(dfs)
+
 
 def get_image_path(subject_path):
     '''Returns one pandas.DataFrame for the given subject's directory.
@@ -93,11 +95,11 @@ def get_image_path(subject_path):
                 # "visit_code": visit_code,
                 "PTID": subject_id,
                 "VISCODE": visit_code,
-                "csf_path": None, # ~500KB
-                "gray_matter_path": None, # ~400KB
-                "white_matter_path": None, # ~300KB
-                "forward_deform_path": None, # ~22MB
-                "inverse_deform_path": None, # ~112MB
+                "csf_path": None,  # ~500KB
+                "gray_matter_path": None,  # ~400KB
+                "white_matter_path": None,  # ~300KB
+                "forward_deform_path": None,  # ~22MB
+                "inverse_deform_path": None,  # ~112MB
                 "skull_intact_path": None
             }
 
@@ -122,9 +124,10 @@ def get_image_path(subject_path):
 
             # values might not be in order
             # data.append([*record.values()])
-            data.append([ record[key] for key in record.keys() ])
+            data.append([record[key] for key in record.keys()])
 
     return pd.DataFrame(data, columns=record.keys())
+
 
 def add_adni_merge(df, adni_merge_path):
     '''Add adni_merge
@@ -165,7 +168,7 @@ def add_adni_merge(df, adni_merge_path):
 
         row["DX"] = match["DX"].values[0]
         # row["VISNUM"] = (int(row["visit_code"][1:])//6)+1 # Nobody has an eighth visit it goes from M36 -> M48
-        row["VISNUM"] = (int(row["VISCODE"][1:])//6) # + 1
+        row["VISNUM"] = (int(row["VISCODE"][1:]) // 6)  # + 1
 
         row["AGE"] = match["AGE"].values[0]
         row["PTGENDER"] = match["PTGENDER"].values[0]
@@ -184,6 +187,7 @@ def add_adni_merge(df, adni_merge_path):
     df.reset_index(drop=True, inplace=True)
     return df
 
+
 def add_img_features(df, cnn_root_path, tadpole_path):
     # Load dataframes
     df_tadpole = pd.read_csv(tadpole_path)
@@ -194,8 +198,8 @@ def add_img_features(df, cnn_root_path, tadpole_path):
     # Initialize columns for tadpole features
     ucsf_names = []
     for name in df_tadpole.columns.values:
-        if('UCSFFSX' in name or 'UCSFFSL' in name):
-            if(name.startswith('ST') and 'STATUS' not in name):
+        if ('UCSFFSX' in name or 'UCSFFSL' in name):
+            if (name.startswith('ST') and 'STATUS' not in name):
                 ucsf_names.append(name)
                 df[name] = None
 
@@ -205,14 +209,14 @@ def add_img_features(df, cnn_root_path, tadpole_path):
 
         visit = df.loc[idx, "VISCODE"]
 
-        if visit == "m00": # NOTE: originally M00, changed to lowercase
+        if visit == "m00":  # NOTE: originally M00, changed to lowercase
             visit_tadpole = "bl"
         else:
-            visit_tadpole = f"m{visit[1:]}" # TODO: Why not just visit?
+            visit_tadpole = f"m{visit[1:]}"  # TODO: Why not just visit?
 
         tadpole_match = df_tadpole[
-                            (df_tadpole['PTID'] == pid_tadpole) &
-                            (df_tadpole['VISCODE'] == visit_tadpole)]
+            (df_tadpole['PTID'] == pid_tadpole) &
+            (df_tadpole['VISCODE'] == visit_tadpole)]
 
         # tadpole features
         for name in ucsf_names:
@@ -220,10 +224,11 @@ def add_img_features(df, cnn_root_path, tadpole_path):
 
         # image features
         df.at[idx, "image_feature_path"] = \
-                f"{cnn_root_path}/{pid}/{visit}/features.pckl"
+            f"{cnn_root_path}/{pid}/{visit}/features.pckl"
 
     df.reset_index(drop=True, inplace=True)
     return df
+
 
 def impute_nan(df, threshold=None):
     tadpole_cols = df.columns[df.dtypes.eq('object')]
@@ -237,19 +242,19 @@ def impute_nan(df, threshold=None):
     df[misc_cols] = df[misc_cols].apply(pd.to_numeric, errors='coerce')
 
     # Impute values with previous value if previous value exists
-    df.sort_values(by=['PTID','VISNUM'],inplace=True)
+    df.sort_values(by=['PTID', 'VISNUM'], inplace=True)
     df = df.groupby('PTID').ffill()
 
     # Fill in leftover NaN values with column mean
     values = tadpole_cols + \
-        [ 'ADAS13','MMSE','ADAS11','RAVLT_immediate','RAVLT_forgetting','AGE',
-          'CDRSB', 'APOE4', ]
+             ['ADAS13', 'MMSE', 'ADAS11', 'RAVLT_immediate', 'RAVLT_forgetting', 'AGE',
+              'CDRSB', 'APOE4', ]
     all_nan_cols = []
     for v in values:
         df[v].fillna(df[v].mean(), inplace=True)
         if np.sum(np.isnan(df[v].values)) > 0:
-                    all_nan_cols.append(v)
-    df = df.drop(all_nan_cols, axis = 1)
+            all_nan_cols.append(v)
+    df = df.drop(all_nan_cols, axis=1)
 
     # Drop columns that have an amount of NaN values above the threshold
     if threshold:
@@ -258,13 +263,14 @@ def impute_nan(df, threshold=None):
 
             if num_missing > threshold - 1:
                 try:
-                    df.drop(col, axis=1,inplace=True)
+                    df.drop(col, axis=1, inplace=True)
                 except KeyError:
                     print("KeyError, cannot drop column: ", col)
 
-    df.reset_index(drop=True,inplace=True)
+    df.reset_index(drop=True, inplace=True)
 
     return df
+
 
 def main(args):
     start_time = time()
@@ -286,8 +292,8 @@ def main(args):
         start_time = time()
         print("Starting add_img_features")
         tadpole_features_df = add_img_features(adni_merge_df,
-                                            args.cnn_path,
-                                            args.tadpole_path)
+                                               args.cnn_path,
+                                               args.tadpole_path)
         result_df = tadpole_features_df
         print(f"Finished add_img_features in {round(time() - start_time)} seconds.")
 
@@ -302,6 +308,7 @@ def main(args):
         with open(f"{args.output_path}.pickle", "wb") as file:
             pickle.dump(result_df, file)
 
+
 if __name__ == "__main__":
     '''
     Script mode
@@ -313,44 +320,44 @@ if __name__ == "__main__":
     parser = ArgumentParser()
 
     parser.add_argument("--scans_path",
-                    default="path/to/clinica_data/subjects",
-                    type=str,
-                    help=f"Root folder for the subject images/scans.")
+                        default="path/to/clinica_data/subjects",
+                        type=str,
+                        help=f"Root folder for the subject images/scans.")
 
     parser.add_argument("--adnimerge_path",
-                    default="../files/ADNIMERGE_relabeled.csv",
-                    type=str,
-                    help=f"Path to the ADNIMERGE.csv file.")
+                        default="../files/ADNIMERGE_relabeled.csv",
+                        type=str,
+                        help=f"Path to the ADNIMERGE.csv file.")
 
     parser.add_argument("--tadpole_path",
-                    default=None,
-                    type=str,
-                    help=f"Path to the tadpole_features.csv file. Optional.")
+                        default=None,
+                        type=str,
+                        help=f"Path to the tadpole_features.csv file. Optional.")
 
     parser.add_argument("--cnn_path",
-                    default=None,
-                    type=str,
-                    help=f"Root of the directory that contains the CNN features. Optional.")
+                        default=None,
+                        type=str,
+                        help=f"Root of the directory that contains the CNN features. Optional.")
 
     parser.add_argument("--output_path",
-                    default="../data/data_mapping",
-                    type=str,
-                    help=f"Path of the output file.")
+                        default="../data/data_mapping",
+                        type=str,
+                        help=f"Path of the output file.")
 
     parser.add_argument("--output_format",
-                    default="json,pickle",
-                    type=str,
-                    help=f"JSON or pickle format, delimited by comma.")
+                        default="json,pickle",
+                        type=str,
+                        help=f"JSON or pickle format, delimited by comma.")
 
     parser.add_argument("--run_main",
-                    default=False,
-                    action="store_true",
-                    help=f"Whether to run the main method or not. Main does not run impute_nan.")
+                        default=False,
+                        action="store_true",
+                        help=f"Whether to run the main method or not. Main does not run impute_nan.")
 
     parser.add_argument("--max_proc",
-                    default=NUM_CPU - 1,
-                    type=int,
-                    help=f"Maximum number of parallel processes to spawn, set to #CPU - 1 by default. Set to 1 for debugging.")
+                        default=NUM_CPU - 1,
+                        type=int,
+                        help=f"Maximum number of parallel processes to spawn, set to #CPU - 1 by default. Set to 1 for debugging.")
 
     args = parser.parse_args()
 

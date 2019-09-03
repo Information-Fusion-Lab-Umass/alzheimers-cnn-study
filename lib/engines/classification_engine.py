@@ -1,10 +1,9 @@
 import torch
-from pdb import set_trace
 
 from .engine_base import EngineBase
-from ..datasets.dataset_3d import Dataset3D
-from ..result import Result
 from ..directory import mkdir
+from ..result import Result
+
 
 class ClassificationEngine(EngineBase):
     def __init__(self, config, tb, logger, **kwargs):
@@ -22,10 +21,10 @@ class ClassificationEngine(EngineBase):
             )
 
             if self.config.lrate_scheduler == "poly":
-                #self.train_scheduler.step()
+                # self.train_scheduler.step()
                 for param_group in self.train_optim.param_groups:
                     param_group['lr'] = self.config.train_optim_lr * \
-                                        (1 - epoch / num_epochs)**0.9
+                                        (1 - epoch / num_epochs) ** 0.9
                     print(param_group['lr'])
 
             for task in ["train", "validate"]:
@@ -55,12 +54,12 @@ class ClassificationEngine(EngineBase):
                     f"\n\t Loss: {loss}"
                     f"\n\t Acc: {round(acc, 4)}"
                 )
-                
+
                 if task == "validate":
                     acc_list.append(acc)
                     if acc > highest_validation_acc:
                         highest_validation_acc = acc
-                    if  self.config.save_best_model:
+                    if self.config.save_best_model:
                         mkdir(self.weight_folder)
                         if acc > highest_validation_acc:
                             self.logger.info(

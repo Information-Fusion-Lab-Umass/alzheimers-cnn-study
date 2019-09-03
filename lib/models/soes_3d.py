@@ -1,6 +1,6 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 
 class Soes3D(nn.Module):
     ''' Replicating Esmaeilzadeh (2018) Miccai Paper
@@ -11,6 +11,7 @@ class Soes3D(nn.Module):
         - Simple 3D architecture
 
     '''
+
     def __init__(self, **kwargs):
         super().__init__()
 
@@ -18,7 +19,7 @@ class Soes3D(nn.Module):
         num_channels = kwargs.get("num_channels", 1)
         cnn_dropout = kwargs.get("cnn_dropout", 0.1)
         class_dropout = kwargs.get("class_dropout", 0.4)
-        
+
         # 3^3 x 32 filters
         self.conv1 = nn.Conv3d(num_channels, 32, kernel_size=3, stride=2)
         self.pool1 = nn.MaxPool3d(2)

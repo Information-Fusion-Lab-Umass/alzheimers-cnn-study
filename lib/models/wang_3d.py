@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from pdb import set_trace
 
 class Wang3D(nn.Module):
     ''' Replicating Wang et al. (2018) ICMLA paper.
@@ -17,6 +16,7 @@ class Wang3D(nn.Module):
         - Reduction for the 1x1x1 convolutions
             |- Used the degree of compression theta=0.7, as reported in fig 5.
     '''
+
     def __init__(self, **kwargs):
         super().__init__()
 
@@ -29,12 +29,12 @@ class Wang3D(nn.Module):
 
         # input 145, output 14
         self.conv1 = nn.Conv3d(num_channels, 24, kernel_size=3, stride=2,
-                                padding=0)
+                               padding=0)
 
-        #num_layers, num_input_features, bn_size, growth_rate, drop_rate
+        # num_layers, num_input_features, bn_size, growth_rate, drop_rate
 
         # input 143, output 143
-        self.block1 = _DenseBlock(8, 24, 4, 24, cnn_dropout-0.05)
+        self.block1 = _DenseBlock(8, 24, 4, 24, cnn_dropout - 0.05)
         # input 143, output 71
         self.conv2 = nn.Conv3d(216, 151, kernel_size=1, stride=1, padding=0)
         self.pool2 = nn.MaxPool3d(2, stride=2)
@@ -47,7 +47,7 @@ class Wang3D(nn.Module):
         self.classification_dropout = nn.Dropout(class_dropout)
 
         classification_layers = [
-            nn.Linear(404261, 1000), 
+            nn.Linear(404261, 1000),
             nn.Linear(1000, 100),
             nn.Linear(100, num_classes)
         ]
@@ -82,6 +82,7 @@ class _DenseBlock(nn.Sequential):
                                 bn_size, drop_rate)
             self.add_module('denselayer%d' % (i + 1), layer)
 
+
 class _DenseLayer(nn.Sequential):
     def __init__(self, num_input_features, growth_rate, bn_size, drop_rate):
         super(_DenseLayer, self).__init__()
@@ -89,7 +90,7 @@ class _DenseLayer(nn.Sequential):
         self.add_module('relu1', nn.ReLU(inplace=True)),
         self.add_module('conv1', nn.Conv3d(num_input_features, growth_rate,
                                            kernel_size=3, stride=1,
-                                           padding=1,bias=False)),
+                                           padding=1, bias=False)),
         self.drop_rate = drop_rate
 
     def forward(self, x):

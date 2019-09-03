@@ -1,11 +1,9 @@
 import torch
 import torch.optim as optim
-
-from tqdm import tqdm
-from pdb import set_trace
-from torch.utils.data import DataLoader
-
 from lib.loader import invalid_collate
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
 
 class EngineBase(object):
     def __init__(self, config, tb, logger, **kwargs):
@@ -54,7 +52,7 @@ class EngineBase(object):
     def train(self, fold_i):
         model = self.model.to(device=self.device)
         model.train()
-        
+
         self.dataset.load_split("train", fold_i)
 
         loader_params = {
@@ -63,11 +61,11 @@ class EngineBase(object):
             "collate_fn": invalid_collate,
             "shuffle": True
         }
-        
+
         loader = DataLoader(self.dataset, **loader_params)
-        
+
         for num_iter, (x, y) in enumerate(tqdm(loader)):
-            if len(x) < torch.cuda.device_count() * 2: # skip for BatchNorm1d
+            if len(x) < torch.cuda.device_count() * 2:  # skip for BatchNorm1d
                 continue
 
             self.train_optim.zero_grad()
@@ -83,7 +81,7 @@ class EngineBase(object):
                 loss = model.loss(pred, y)
 
             loss.backward()
-            #torch.nn.utils.clip_grad_value_(model.parameters(), 2.5)
+            # torch.nn.utils.clip_grad_value_(model.parameters(), 2.5)
             self.train_optim.step()
 
             yield x.detach().cpu(), \

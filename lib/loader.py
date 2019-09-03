@@ -1,6 +1,5 @@
 from torch.utils.data.dataloader import default_collate
 
-from pdb import set_trace
 
 def invalid_collate(batch):
     """Collate function for DataLoader that handles the scenario where Dataset returns (None, None) due to erraneous image files.
