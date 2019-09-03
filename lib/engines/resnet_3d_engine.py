@@ -1,7 +1,9 @@
 import torch
+
 from .classification_engine import ClassificationEngine
-from ..models.resnet_3d import ResNet3D
 from ..datasets.dataset_3d import Dataset3D
+from ..models.resnet_3d import ResNet3D
+
 
 class ResNet3DEngine(ClassificationEngine):
     def __init__(self, config, tb, logger, **kwargs):

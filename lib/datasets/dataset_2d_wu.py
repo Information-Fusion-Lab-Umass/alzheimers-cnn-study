@@ -1,6 +1,7 @@
+from pdb import set_trace
+
 from lib.datasets.dataset_2d import Dataset2D
 
-from pdb import set_trace
 
 class Dataset2DWu(Dataset2D):
     def __init__(self, config, logger, **kwargs):

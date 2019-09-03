@@ -1,11 +1,12 @@
-import torch
 import pickle
 
-from pdb import set_trace
+import torch
+
 
 class Result(object):
     def __init__(self, predictions, labels):
-        assert len(predictions) == len(labels), "The length of the predictions and the length of the labels do not match!"
+        assert len(predictions) == len(
+            labels), "The length of the predictions and the length of the labels do not match!"
         self.predictions = predictions
         self.labels = labels
 
@@ -25,7 +26,7 @@ class Result(object):
             if targets.sum().item() < 0.1:
                 acc[c] = 0.0
             else:
-                acc[c] =  num_correct * 1.0 / targets.sum().item()
+                acc[c] = num_correct * 1.0 / targets.sum().item()
 
         return acc
 

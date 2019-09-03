@@ -2,11 +2,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from pdb import set_trace
 
 class ResNet3D(nn.Module):
     """Deep network with many convolution layers.
     """
+
     def __init__(self, **kwargs):
         super().__init__()
 
@@ -20,7 +20,7 @@ class ResNet3D(nn.Module):
 
         # input 145, output 143
         self.conv1 = nn.Conv3d(num_channels, 32, kernel_size=3, stride=1,
-                                padding=0)
+                               padding=0)
 
         # input 143, output 143
         self.block1 = ResidualStack(32, num_blocks=num_blocks[0],
@@ -61,9 +61,9 @@ class ResNet3D(nn.Module):
         self.classification_dropout = nn.Dropout(class_dropout)
 
         if data_type == "clinica":
-            classification_layers = [ nn.Linear(2*2*2*512, num_classes) ]
+            classification_layers = [nn.Linear(2 * 2 * 2 * 512, num_classes)]
         elif data_type == "freesurfer":
-            classification_layers = [ nn.Linear(4*4*4*512, num_classes) ]
+            classification_layers = [nn.Linear(4 * 4 * 4 * 512, num_classes)]
 
         self.classify = nn.Sequential(*classification_layers)
 
@@ -100,12 +100,12 @@ class ResNet3D(nn.Module):
 
             # -> l6q
             deconv2 = F.conv_transpose3d(hidden,
-                        conv7.weight.flip(*weight_flip), stride=1)
+                                         conv7.weight.flip(*weight_flip), stride=1)
             deconv2 = F.relu(self.back_bn1(deconv2))
 
             deconv3 = F.conv_transpose3d(deconv2,
-                        conv6.weight.flip(*weight_flip), stride=2, padding=1,
-                        output_padding=1)
+                                         conv6.weight.flip(*weight_flip), stride=2, padding=1,
+                                         output_padding=1)
             deconv3 = F.relu(self.back_bn2(deconv3))
 
             # -> l5
@@ -113,7 +113,7 @@ class ResNet3D(nn.Module):
 
             conv5 = self.conv5
             deconv5 = F.conv_transpose3d(deconv4,
-                        conv5.weight.flip(*weight_flip), stride=2)
+                                         conv5.weight.flip(*weight_flip), stride=2)
             deconv5 = F.relu(self.back_bn4(deconv5))
 
             # -> l4
@@ -121,7 +121,7 @@ class ResNet3D(nn.Module):
 
             conv4 = self.conv4
             deconv7 = F.conv_transpose3d(deconv6,
-                        conv4.weight.flip(*weight_flip), stride=2)
+                                         conv4.weight.flip(*weight_flip), stride=2)
             deconv7 = F.relu(self.back_bn6(deconv7))
 
             # -> l3
@@ -129,7 +129,7 @@ class ResNet3D(nn.Module):
 
             conv3 = self.conv3
             deconv9 = F.conv_transpose3d(deconv8,
-                        conv3.weight.flip(*weight_flip), stride=2)
+                                         conv3.weight.flip(*weight_flip), stride=2)
             deconv9 = F.relu(self.back_bn8(deconv9))
 
             # -> l2
@@ -137,14 +137,14 @@ class ResNet3D(nn.Module):
 
             conv2 = self.conv2
             deconv11 = F.conv_transpose3d(deconv10,
-                        conv2.weight.flip(*weight_flip), stride=2)
+                                          conv2.weight.flip(*weight_flip), stride=2)
             deconv11 = F.relu(self.back_bn10(deconv11))
 
             deconv12 = F.relu(self.back_bn11(self.block1.backward(deconv11)))
 
             conv1 = self.conv1
             deconv13 = F.conv_transpose3d(deconv12,
-                        conv1.weight.flip(*weight_flip), stride=1)
+                                          conv1.weight.flip(*weight_flip), stride=1)
 
             return torch.sigmoid(deconv13), hidden
         else:
@@ -197,9 +197,11 @@ class ResNet3D(nn.Module):
         for params in self.bn7.parameters():
             params.requires_grad = False
 
+
 class ResidualStack(nn.Module):
     '''A stack of residual blocks.
     '''
+
     def __init__(self, num_chan, num_blocks, **kwargs):
         super().__init__()
 
@@ -240,6 +242,7 @@ class ResidualBlock(nn.Module):
     Follow "bottleneck" building block from https://arxiv.org/abs/1512.03385
     Follows "pre-activation" setup from https://arxiv.org/abs/1603.05027
     '''
+
     def __init__(self, num_chan, **kwargs):
         super().__init__()
 
@@ -252,17 +255,17 @@ class ResidualBlock(nn.Module):
 
         self.bn1 = nn.BatchNorm3d(num_chan)
         self.conv1 = nn.Conv3d(num_chan, hidden_chan, kernel_size=1,
-                                        stride=1, padding=0)
+                               stride=1, padding=0)
         nn.init.kaiming_normal_(self.conv1.weight)
 
         self.bn2 = nn.BatchNorm3d(hidden_chan)
         self.conv2 = nn.Conv3d(hidden_chan, hidden_chan, kernel_size=3,
-                                        stride=1, padding=0)
+                               stride=1, padding=0)
         nn.init.kaiming_normal_(self.conv2.weight)
 
         self.bn3 = nn.BatchNorm3d(hidden_chan)
         self.conv3 = nn.Conv3d(hidden_chan, num_chan, kernel_size=1,
-                                        stride=1, padding=0)
+                               stride=1, padding=0)
         nn.init.kaiming_normal_(self.conv3.weight)
 
         self.bn3_back = nn.BatchNorm3d(hidden_chan)
@@ -279,7 +282,7 @@ class ResidualBlock(nn.Module):
 
         amount_to_pad = (l1.shape[-1] - l3.shape[-1]) // 2
         # times six because there are six sides to pad
-        padding = (amount_to_pad, ) * 6
+        padding = (amount_to_pad,) * 6
 
         return F.pad(l3, padding, value=0) + prev_state
 

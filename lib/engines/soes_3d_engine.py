@@ -1,8 +1,9 @@
 import torch
+
 from .classification_engine import ClassificationEngine
-from ..models.resnet_3d import ResNet3D
-from ..models.soes_3d import Soes3D
 from ..datasets.dataset_3d import Dataset3D
+from ..models.soes_3d import Soes3D
+
 
 class Soes3DEngine(ClassificationEngine):
     def __init__(self, config, tb, logger, **kwargs):
@@ -15,7 +16,7 @@ class Soes3DEngine(ClassificationEngine):
 
     def setup_model(self, from_path=None):
         num_channels = len(self.config.image_columns)
-        
+
         self.model = Soes3D(num_channels=num_channels)
 
         if from_path is not None:

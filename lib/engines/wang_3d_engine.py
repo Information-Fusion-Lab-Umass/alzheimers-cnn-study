@@ -1,8 +1,9 @@
 import torch
+
 from .classification_engine import ClassificationEngine
-from ..models.resnet_3d import ResNet3D
-from ..models.wang_3d import Wang3D
 from ..datasets.dataset_3d import Dataset3D
+from ..models.wang_3d import Wang3D
+
 
 class Wang3DEngine(ClassificationEngine):
     def __init__(self, config, tb, logger, **kwargs):

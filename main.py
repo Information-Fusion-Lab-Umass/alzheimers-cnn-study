@@ -1,21 +1,18 @@
-import sys
-import yaml
-import uuid
-import torch
 import logging
+import sys
+import uuid
+from argparse import ArgumentParser
+from time import time
 
 import numpy as np
-
-from time import time
-from pdb import set_trace
-from argparse import ArgumentParser
+import torch
+import yaml
 from tensorboardX import SummaryWriter
 
-from lib.directory import mkdir
 
 def main(config, tb, logger):
     # https://github.com/pytorch/pytorch/issues/1485
-    torch.backends.cudnn.benchmark=True
+    torch.backends.cudnn.benchmark = True
 
     if config.engine == "resnet_3d":
         from lib.engines.resnet_3d_engine import ResNet3DEngine as Engine
@@ -41,11 +38,12 @@ def main(config, tb, logger):
     val_acc_list = np.divide(val_acc_list, k_folds)
     logger.info("Cross-validation Accuracy: " + str(val_acc))
     logger.info(val_acc_list)
- 
+
     result = engine.test()
 
     if config.save_result:
         result.save_to_file(config.run_id)
+
 
 def _parse_main_arguments():
     '''Parse the arguments passed to main.py.
@@ -214,6 +212,7 @@ def _parse_main_arguments():
 
     return args
 
+
 def _get_logger(config):
     log_handlers = []
 
@@ -231,6 +230,7 @@ def _get_logger(config):
     logger = logging.getLogger()
 
     return logger
+
 
 if __name__ == "__main__":
     # Setup PYTHONPATH

@@ -1,6 +1,7 @@
+from lib.datasets.dataset_2d_wu import Dataset2DWu
 from lib.engines.classification_engine import ClassificationEngine
 from torchvision.models import alexnet
-from lib.datasets.dataset_2d_wu import Dataset2DWu
+
 
 class Wu2DCaffeEngine(ClassificationEngine):
     def __init__(self, config, tb, logger, **kwargs):

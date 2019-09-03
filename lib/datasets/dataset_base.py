@@ -1,14 +1,13 @@
 import os
 import pickle
 import traceback
+
+import nibabel as nib
 import numpy as np
 import pandas as pd
-import nibabel as nib
-
-from torchvision import transforms as T
-from torch.utils.data import Dataset
-from pdb import set_trace
 from scipy.ndimage import zoom
+from torch.utils.data import Dataset
+
 
 class DatasetBase(Dataset):
     LABEL_MAPPING = ["CN", "MCI", "AD"]
@@ -29,7 +28,8 @@ class DatasetBase(Dataset):
         mapping_path = config.data_path
 
         if not os.path.exists(mapping_path):
-            raise FileNotFoundError(f"Mapping file \"{mapping_path}\" does not exist! Run \"mapping.py\" script in the \"util/\" directory to generate the mapping pickle file.")
+            raise FileNotFoundError(
+                f"Mapping file \"{mapping_path}\" does not exist! Run \"mapping.py\" script in the \"util/\" directory to generate the mapping pickle file.")
 
         self.dataframe = self._load_data(mapping_path)
         self.fold_dataframe = None
@@ -40,8 +40,8 @@ class DatasetBase(Dataset):
 
         if os.path.exists(config.brain_mask_path):
             self.brain_mask = nib.load(config.brain_mask_path) \
-                                 .get_fdata() \
-                                 .squeeze()
+                .get_fdata() \
+                .squeeze()
         else:
             self.brain_mask = None
 
@@ -57,18 +57,18 @@ class DatasetBase(Dataset):
         return None
 
     def process_item(self, idx):
-        paths = [ self.fold_dataframe.iloc[idx][col] for col in self.image_columns ]
+        paths = [self.fold_dataframe.iloc[idx][col] for col in self.image_columns]
         images = []
         label = self.fold_dataframe.iloc[idx][self.config.label_column]
 
         for path in paths:
             try:
                 image = nib.load(path) \
-                           .get_fdata() \
-                           .squeeze()
+                    .get_fdata() \
+                    .squeeze()
                 if self.config.engine == "soes_3d":
                     x, y, z = image.shape
-                    image = zoom(image, (116./x, 130./y, 83./z))
+                    image = zoom(image, (116. / x, 130. / y, 83. / z))
                     if np.random.uniform() < 0.5:
                         image = np.flip(image, 0).copy()
                 if self.brain_mask is not None:
@@ -104,7 +104,7 @@ class DatasetBase(Dataset):
                 df = pickle.load(f)
 
         if self.config.num_classes == 2:
-            df = df[(df["DX"]=="AD")|(df["DX"]=="CN")]
+            df = df[(df["DX"] == "AD") | (df["DX"] == "CN")]
 
         # filter out rows with empty image path
         for i in range(len(self.image_columns)):
@@ -125,37 +125,37 @@ class DatasetBase(Dataset):
         k = self.config.training_crossval_folds
 
         if split == "train" or split == "val":
-            self.fold_dataframe = self.dataframe[0 : int((1-test_ratio) * df_len)]
+            self.fold_dataframe = self.dataframe[0: int((1 - test_ratio) * df_len)]
             df_len = self.fold_dataframe.shape[0]
             if split == "train":
                 if k == 1:
                     self.fold_dataframe = self.fold_dataframe
                 else:
-                    self.fold_dataframe = self.fold_dataframe[0 : int(fold_i * df_len / k)].append(\
-				self.fold_dataframe[int((fold_i+1) * df_len / k) : -1], ignore_index=True)
+                    self.fold_dataframe = self.fold_dataframe[0: int(fold_i * df_len / k)].append( \
+                        self.fold_dataframe[int((fold_i + 1) * df_len / k): -1], ignore_index=True)
             elif split == "val":
                 if k == 1:
                     self.fold_dataframe = self.fold_dataframe[-1:]
                     print(self.fold_dataframe.shape)
                 else:
-                    self.fold_dataframe = self.fold_dataframe[int(fold_i * df_len / k) : int((fold_i+1) * df_len / k)]
+                    self.fold_dataframe = self.fold_dataframe[int(fold_i * df_len / k): int((fold_i + 1) * df_len / k)]
         elif split == "test":
-            self.fold_dataframe = self.dataframe[int((1-test_ratio) * df_len) : -1]
+            self.fold_dataframe = self.dataframe[int((1 - test_ratio) * df_len): -1]
         if self.config.dataset_size_limit != -1:
             self.logger.warn(f"ENFORCING DATASET SIZE LIMIT OF {self.config.dataset_size_limit}.")
             self.fold_dataframe = self.fold_dataframe[:self.config.dataset_size_limit]
         return
         self.logger.debug(
             f"\n\tTraining size - {len(train_split)}"
-            f"\n\t\tCN: {len(list(filter(lambda x: x[1]=='CN',train_split)))}, "
-            f"MCI: {len(list(filter(lambda x: x[1]=='MCI',train_split)))}, "
-            f"AD: {len(list(filter(lambda x: x[1]=='AD',train_split)))}"
+            f"\n\t\tCN: {len(list(filter(lambda x: x[1] == 'CN', train_split)))}, "
+            f"MCI: {len(list(filter(lambda x: x[1] == 'MCI', train_split)))}, "
+            f"AD: {len(list(filter(lambda x: x[1] == 'AD', train_split)))}"
             f"\n\tValidation size - {len(valid_split)}"
-            f"\n\t\tCN: {len(list(filter(lambda x: x[1]=='CN',valid_split)))}, "
-            f"MCI: {len(list(filter(lambda x: x[1]=='MCI',valid_split)))}, "
-            f"AD: {len(list(filter(lambda x: x[1]=='AD',valid_split)))}"
+            f"\n\t\tCN: {len(list(filter(lambda x: x[1] == 'CN', valid_split)))}, "
+            f"MCI: {len(list(filter(lambda x: x[1] == 'MCI', valid_split)))}, "
+            f"AD: {len(list(filter(lambda x: x[1] == 'AD', valid_split)))}"
             f"\n\tTesting size - {len(test_split)}"
-            f"\n\t\tCN: {len(list(filter(lambda x: x[1]=='CN',test_split)))}, "
-            f"MCI: {len(list(filter(lambda x: x[1]=='MCI',test_split)))}, "
-            f"AD: {len(list(filter(lambda x: x[1]=='AD',test_split)))}"
+            f"\n\t\tCN: {len(list(filter(lambda x: x[1] == 'CN', test_split)))}, "
+            f"MCI: {len(list(filter(lambda x: x[1] == 'MCI', test_split)))}, "
+            f"AD: {len(list(filter(lambda x: x[1] == 'AD', test_split)))}"
         )

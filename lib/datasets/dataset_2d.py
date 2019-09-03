@@ -1,5 +1,6 @@
 from .dataset_base import DatasetBase
 
+
 class Dataset2D(DatasetBase):
     def __init__(self, config, logger, **kwargs):
         super().__init__(config, logger, **kwargs)
