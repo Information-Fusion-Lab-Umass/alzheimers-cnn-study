@@ -1,9 +1,15 @@
+from abc import ABC
+
 import torch.nn.functional as F
 
 
-class PadToSameDim(object):
-    '''Pad the image so the dimensions match.
-    '''
+class Transform(ABC):
+    pass
+
+
+class PadToSameDim(Transform):
+    """Pad the image so the dimensions match.
+    """
 
     def __init__(self, num_dim=3):
         self.num_dim = num_dim
@@ -19,13 +25,13 @@ class PadToSameDim(object):
                 padding[2 * idx] = diff // 2
                 padding[2 * idx + 1] = diff // 2
 
-        flipped_padding = tuple(reversed(padding))
+        flipped_padding = list(reversed(padding))
         return F.pad(image, flipped_padding)
 
 
-class NaNToNum(object):
-    '''Replace nan in Tensor with a constant.
-    '''
+class NaNToNum(Transform):
+    """Replace nan in Tensor with a constant.
+    """
 
     def __init__(self, constant=None):
         self.constant = constant
@@ -40,25 +46,18 @@ class NaNToNum(object):
         return image
 
 
-class RangeNormalize(object):
-    '''
-    Normalize the pixel values to between 0 and 1.
-    '''
-
-    def __init__(self):
-        pass
+class RangeNormalize(Transform):
+    """Normalize the pixel values to between 0 and 1.
+    """
 
     def __call__(self, image):
         shifted = image - image.min()
         return shifted / shifted.max()
 
 
-class MeanStdNormalize(object):
-    '''Normalize the pixel values to between -1 and 1 by subtracting the mean and dividing by the standard deviation.
-    '''
-
-    def __init__(self):
-        pass
+class MeanStdNormalize(Transform):
+    """Normalize the pixel values to between -1 and 1 by subtracting the mean and dividing by the standard deviation.
+    """
 
     def __call__(self, image):
         return (image - image.mean()) / image.std()
