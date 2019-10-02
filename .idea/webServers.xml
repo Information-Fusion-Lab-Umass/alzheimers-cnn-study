@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="18dd49df-0404-46d8-9079-3982dfa01e17" name="gypsum fusion" url="http://gypsum.cs.umass.edu">
+        <fileTransfer host="gypsum.cs.umass.edu" port="22" rootFolder="/mnt/nfs/work1/mfiterau/zguan " accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

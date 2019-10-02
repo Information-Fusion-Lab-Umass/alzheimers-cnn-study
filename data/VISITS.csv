@@ -1,0 +1,60 @@
+Phase,ID,VISCODE,VISNAME,VISORDER
+ADNI1,1,sc,Screening,1
+ADNI1,2,bl,Baseline,2
+ADNI1,3,m06,Month 6,3
+ADNI1,4,m12,Month 12,4
+ADNI1,5,m18,Month 18,5
+ADNI1,6,m24,Month 24,6
+ADNI1,7,m30,Month 30,7
+ADNI1,8,m36,Month 36,8
+ADNI1,9,m42,Month 42,9
+ADNI1,10,m48,Month 48,10
+ADNI1,11,m54,Month 54,11
+ADNI1,12,uns1,Unscheduled,
+ADNI1,13,f,Screen Fail,
+ADNI1,14,nv,No Visit Defined,
+ADNIGO,1,sc,Screening,1
+ADNIGO,2,scmri,Screening MRI,2
+ADNIGO,3,bl,Baseline,3
+ADNIGO,4,m03,Month 3 MRI,4
+ADNIGO,5,m06,Month 6,5
+ADNIGO,6,m12,Month 12,6
+ADNIGO,7,m18,Month 18,7
+ADNIGO,8,m36,Month 36,8
+ADNIGO,9,m42,Month 42,9
+ADNIGO,10,m48,Month 48,10
+ADNIGO,11,m54,Month 54,11
+ADNIGO,12,m60,Month 60,12
+ADNIGO,13,m66,Month 66,13
+ADNIGO,14,m72,Month 72,14
+ADNIGO,15,m78,Month 78,15
+ADNIGO,16,nv,No Visit Defined,
+ADNI2,1,v01,Screening - New Pt,1
+ADNI2,2,v02,Screening MRI - New Pt,2
+ADNI2,3,v03,Baseline - New Pt,3
+ADNI2,4,v04,Month 3 MRI - New Pt,4
+ADNI2,5,v05,Month 6 - New Pt,5
+ADNI2,6,v06,ADNI2 Initial Visit - Continuing Pt,6
+ADNI2,7,v07,ADNI2 Initial TelCheck - Continuing Pt,7
+ADNI2,8,v11,ADNI2 Year 1 Visit,8
+ADNI2,9,v12,ADNI2 Year 1 TelCheck,9
+ADNI2,10,v21,ADNI2 Year 2 Visit,10
+ADNI2,11,v22,ADNI2 Year 2 TelCheck,11
+ADNI2,12,v31,ADNI2 Year 3 Visit,12
+ADNI2,13,v32,ADNI2 Year 3 TelCheck,13
+ADNI2,14,v41,ADNI2 Year 4 Visit,14
+ADNI2,15,v42,ADNI2 Year 4 TelCheck,15
+ADNI2,16,v51,ADNI2 Year 5 Visit,16
+ADNI2,17,v52,ADNI2 Year 5 TelCheck,17
+ADNI2,18,nv,No Visit Defined,
+ADNI2,19,tau,ADNI2 Tau-only visit,
+ADNI3,1,reg,Participant Registration,1
+ADNI3,2,sc,Screening - New Pt,2
+ADNI3,3,bl,Baseline - New Pt,3
+ADNI3,4,init,ADNI3 Initial Visit - Continuing Pt,4
+ADNI3,5,y1,ADNI3 Year 1 Visit,5
+ADNI3,6,y2,ADNI3 Year 2 Visit,6
+ADNI3,7,y3,ADNI3 Year 3 Visit,7
+ADNI3,8,y4,ADNI3 Year 4 Visit,8
+ADNI3,9,y5,ADNI3 Year 5 Visit,9
+ADNI3,10,y6,ADNI3 Year 6 Visit,10
