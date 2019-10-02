@@ -1,19 +1,19 @@
-from typing import NamedTuple, List, Dict, Type
+from typing import NamedTuple, Dict, Type
 
 import torch.optim as optim
 
-from lib.engines import Engine, Wang3DEngine
+from lib.engines import Engine, Wu2DEngine
 
 
 class ImageRecord(NamedTuple):
     patient_id: str
     visit_code: str
-    image_paths: List[str]
+	image_path: str
     label: str
 
 
 ENGINE_TYPES: Dict[str, Type[Engine]] = {
-    "wang_3d": Wang3DEngine
+	"wu_2d": Wu2DEngine
 }
 
 OPTIMIZER_TYPES = {

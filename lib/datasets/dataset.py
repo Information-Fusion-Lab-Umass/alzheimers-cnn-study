@@ -9,7 +9,7 @@ from torch import Tensor
 from lib import Object, ImageRecord
 from lib.datasets import Mapping
 from lib.utils.collate import invalid_collate
-from lib.utils.images import load_image
+from lib.utils.images import load_nii_image, load_npz_image
 from lib.utils.labels import encode_label
 
 
@@ -21,7 +21,7 @@ class Dataset(Object, ABC, torch_data.Dataset):
         self.transforms = T.Compose(self.provide_transforms())
 
     def __len__(self):
-        return len(self.mapping) * self.num_slices_per_image()
+		return len(self.mapping)
 
     # ==================================================================================================================
     # Abstract methods - OVERRIDE THESE
@@ -37,35 +37,23 @@ class Dataset(Object, ABC, torch_data.Dataset):
         """
         return []
 
-    # ==================================================================================================================
-    # Properties, override as needed
-    # ==================================================================================================================
-
-    @classmethod
-    def num_slices_per_image(cls) -> int:
-        """How many slices to count per image, use 1 for 3D images.
-        WARN: DO NOT CHANGE THIS VALUE HERE, OVERRIDE IN CHILD CLASSES
-        """
-        return 1
-
-    @classmethod
-    def after_loading_image(cls, image: np.ndarray) -> np.ndarray:
+	def after_loading_image(self, image: np.ndarray) -> np.ndarray:
         """Override in child class to add postprocess logic after loading an image.
         """
         return image
 
     def process_record(self, record: ImageRecord) -> Tuple[List[np.ndarray], int]:
-        paths = record.image_paths
+		image_path = record.image_path
         label = record.label
 
-        images = []
+		if image_path[-3:] == "nii":
+			image = load_nii_image(image_path)
+		elif image_path[-3:] == "npz":
+			image = load_npz_image(image_path)
+		else:
+			raise Exception(f"Unrecognized file extension: {image_path[-3:]} in {image_path}")
 
-        for path in paths:
-            image = load_image(path)
-            post_processed_image = self.after_loading_image(image)
-            images.append(post_processed_image)
-
-        return images, encode_label(label)
+		return image, encode_label(label)
 
     @classmethod
     def build(cls, mapping, **loader_params):

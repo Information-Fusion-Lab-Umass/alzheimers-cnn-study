@@ -5,7 +5,7 @@ import nibabel as nib
 import numpy as np
 
 
-def load_image(image_path: str) -> Optional[np.ndarray]:
+def load_nii_image(image_path: str) -> Optional[np.ndarray]:
     image = None
 
     try:
@@ -16,3 +16,7 @@ def load_image(image_path: str) -> Optional[np.ndarray]:
         print(traceback.format_exc())
 
     return image
+
+
+def load_npz_image(image_path: str) -> Optional[np.ndarray]:
+	return np.load(image_path)

@@ -2,51 +2,24 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f868dcbd-ce65-475b-92da-16ef355970be" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/datasets/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/datasets/dataset.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/datasets/mapping.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/datasets/wang_3d_dataset.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/engines/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/engines/engine.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/models/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/models/model.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/object.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/types.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/utils/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/utils/images.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/utils/labels.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/utils/transforms.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/run_wang_paper_split.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/webServers.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/VISITS.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/preprocessing/default_preprocessing_generator.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/preprocessing/utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/preprocessing/wu_et_al.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/alzheimers-cnn-study.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/alzheimers-cnn-study.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/files/ADNIMERGE_relabeled.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/ADNIMERGE_relabeled.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/datasets/dataset_2d.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/datasets/dataset_2d_wu.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/datasets/dataset_3d.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/datasets/dataset_base.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/directory.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/engines/classification_engine.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/engines/engine_base.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/engines/resnet_3d_engine.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/engines/soes_3d_engine.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/engines/wang_3d_engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/engines/wang_3d_engine.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/engines/wu_2d_engine.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/collate.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/models/resnet_3d.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/models/soes_3d.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/models/wang_3d.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/result.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/transforms.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_soes.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_wang.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_wu_caffe.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/util/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/mapping.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/datasets/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/datasets/dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/datasets/wang_3d_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/engines/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/engines/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/engines/wang_3d_engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/engines/wu_2d_engine.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/types.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/types.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/utils/images.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/images.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_wang_paper_split.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_wu_paper_split.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/clinica_mapping.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -66,16 +39,22 @@
   </component>
   <component name="ProjectId" id="1QKOyBSbrYyK3QOyNu1axdPUDv9" />
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/lib/utils" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.Python" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/data" />
       <recent name="$PROJECT_DIR$/lib/data" />
       <recent name="$PROJECT_DIR$/lib/utils" />
       <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/data" />
       <recent name="$PROJECT_DIR$/scripts" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
@@ -110,12 +89,31 @@
       <workItem from="1567547383993" duration="4233000" />
       <workItem from="1567629675484" duration="5030000" />
       <workItem from="1568584850185" duration="7119000" />
-      <workItem from="1568592333020" duration="13493000" />
+      <workItem from="1568592333020" duration="13945000" />
+      <workItem from="1568655427321" duration="170000" />
+      <workItem from="1568740695635" duration="2721000" />
+      <workItem from="1568743622494" duration="295000" />
+      <workItem from="1568743920774" duration="365000" />
+      <workItem from="1568816785253" duration="3000" />
+      <workItem from="1568820861543" duration="5376000" />
+      <workItem from="1568826916097" duration="1108000" />
+      <workItem from="1568842842735" duration="3174000" />
+      <workItem from="1569084828774" duration="903000" />
+      <workItem from="1569103047778" duration="1829000" />
+      <workItem from="1569805053000" duration="858000" />
+      <workItem from="1569887653888" duration="8160000" />
+      <workItem from="1569944549109" duration="2604000" />
+      <workItem from="1569949158322" duration="144000" />
+      <workItem from="1569960581442" duration="3958000" />
+      <workItem from="1569988874574" duration="539000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.csv" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">

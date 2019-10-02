@@ -1,7 +1,7 @@
 from lib.engines import Engine
 
 
-class Wang3DEngine(Engine):
+class Wu2DEngine(Engine):
     def setup_dataset(self):
         pass
 
