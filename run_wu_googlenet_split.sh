@@ -18,16 +18,13 @@ export cmd="python3 main.py \
 --no-log-to-file \
 --no-save-best-model \
 --use-gpu \
---mapping-path data/NDJ_wang_splitByPaper_data.csv \
---image-columns IMAGE_PATH \
+--image-column IMGPATH \
 --label-column DX \
+--dataset-size-limit 10 \
 --training-crossval-folds 5 \
 --testing-split 0.2 \
 --num-workers 0 \
---engine wu_2d \
---pretrain-optim-lr 0.001 \
---pretrain-optim-wd 0.01 \
---pretrain-batch-size 2 \
+--engine wu_googlenet \
 --train-epochs 24 \
 --train-optim-lr 0.01 \
 --train-optim-wd 0.0005 \
@@ -35,7 +32,6 @@ export cmd="python3 main.py \
 --train-momentum 0.9 \
 --validate-batch-size 10 \
 --test-batch-size 10 \
---lrate-scheduler poly \
 --optimizer SGD"
 
 echo ""

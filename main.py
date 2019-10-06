@@ -1,14 +1,19 @@
 import sys
-import yaml
-import torch
-
 from time import time
+from typing import Type, Dict
 
-from lib import ENGINE_TYPES
-from config import config, unknown, logger, tensorboard
+import torch
+import yaml
+
+from config import config, unknown, logger
+from lib.engines import Engine, WuGoogleNetEngine
 
 # https://github.com/pytorch/pytorch/issues/1485
 torch.backends.cudnn.benchmark = True
+
+ENGINE_TYPES: Dict[str, Type[Engine]] = {
+    "wu_googlenet": WuGoogleNetEngine
+}
 
 if __name__ == "__main__":
     sys.path.append("...")
@@ -25,6 +30,11 @@ if __name__ == "__main__":
                     f"Unknown arguments received: {unknown}.")
 
         start_time = time()
+
+        if config.pretrain_epochs > -1:
+            engine.pretrain(config.pretrain_epochs)
+
+        engine.run()
 
         end_time = time()
 

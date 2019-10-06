@@ -1,6 +1,5 @@
 import pickle
-from abc import ABC
-from collections.abc import Collection
+from collections import Iterable
 from math import floor
 from typing import List
 
@@ -10,12 +9,17 @@ from pandas.core.series import Series
 from lib import Object, ImageRecord
 
 
-class Mapping(Object, Collection, ABC):
+class Mapping(Object, Iterable):
     def __init__(self, mapping: List[ImageRecord] = None, mapping_path: str = None):
         Object.__init__(self)
-        Collection.__init__(self)
-        ABC.__init__(self)
+        Iterable.__init__(self)
+
+        assert mapping is not None or mapping_path is not None, \
+            "Must provide either a list of ImageRecord objects or a mapping path where such list can " \
+            "be constructed from."
+
         self.mapping: List[ImageRecord] = mapping or self._load_mapping(mapping_path)
+        self.iter_idx = 0
 
     def __len__(self) -> int:
         return len(self.mapping)
@@ -23,11 +27,14 @@ class Mapping(Object, Collection, ABC):
     def __getitem__(self, index: int) -> ImageRecord:
         return self.mapping[index]
 
+    def __iter__(self):
+        return (record for record in self.mapping)
+
     def __contains__(self, item) -> bool:
         return item in self.mapping
 
-    def split(self, ratios: List[float]) -> List["Mapping"]:
-        """This method splits at the 3D-image level.
+    def split_by_ratio(self, ratios: List[float]) -> List["Mapping"]:
+        """This method splits the mapped images into sets based on the specified ratio.
         """
         assert sum(ratios) == 1.0, "Split ratio must add up to 1.0"
         num_total = len(self.mapping)
@@ -41,18 +48,23 @@ class Mapping(Object, Collection, ABC):
     # ==================================================================================================================
 
     def _series_to_record(self, series: Series) -> ImageRecord:
-        patient_id = series["PTID"]
-        visit_code = series["VISCODE"]
-        image_paths = list(map(lambda x: series[x], self.config.image_columns))
-        label = series["DX"]
+        patient_id = series[1]["PTID"]
+        visit_code = series[1]["VISCODE"]
+        image_path = series[1][self.config.image_column]
+        label = series[1]["DX"]
 
-        return ImageRecord(patient_id, visit_code, image_paths, label)
+        return ImageRecord(patient_id, visit_code, image_path, label)
 
     def _load_mapping(self, mapping_path: str) -> List[ImageRecord]:
         assert mapping_path is not None, "Cannot load empty path!"
+        # name of the column containing image path
+        image_column: str = self.config.image_column
+        # name of the column containing label
+        label_column: str = self.config.label_column
 
         if mapping_path[-3:] == "csv":
-            df = pd.read_csv(mapping_path)
+            df = pd.read_csv(mapping_path,
+                             dtype={image_column: str, label_column: str, "PTID": str, "VISCODE": str})
         else:
             with open(mapping_path, "rb") as f:
                 df = pickle.load(f)
@@ -60,17 +72,7 @@ class Mapping(Object, Collection, ABC):
         if self.config.num_classes == 2:
             df = df[(df["DX"] == "AD") | (df["DX"] == "CN")]
 
-        # name of the column containing image path
-        image_columns: str = self.config.image_columns
-        # name of the column containing label
-        label_columns: str = self.config.label_column
-
         # filter out rows with empty image path
-        for i in range(len(image_columns)):
-            df = df[df[image_columns[i]].notnull()].reset_index(drop=True)
-
-            # change LMCI and EMCI to MCI
-        target = (df[label_columns] == "LMCI") | (df[label_columns] == "EMCI")
-        df.loc[target, label_columns] = "MCI"
+        df = df[df[image_column].notnull()].reset_index(drop=True)
 
         return list(map(self._series_to_record, df.iterrows()))

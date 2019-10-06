@@ -2,8 +2,11 @@ import pandas as pd
 
 from utils import safe_listdir
 
+MRI_LIST_PATH = "../../data/MRILIST.csv"
+VISITS_PATH = "../../data/VISITS.csv"
 
-def default_preprocessing_generator(dataset_path, adni_merge_path, mri_list_path, visits_path):
+
+def default_preprocessing_generator(dataset_path, adni_merge):
     """This function provides a generator to iterate through all of the images from the ADNI dataset with the
     "MPR", "GradWarp", "B1 Correction", "N3 Scaled" pre-processing steps applied. This generator assumes the following
     data file structure.
@@ -30,7 +33,9 @@ def default_preprocessing_generator(dataset_path, adni_merge_path, mri_list_path
         ...
     """
     sub_folders = safe_listdir(dataset_path)
-    adni_merge = pd.read_csv(adni_merge_path)
+    mri_list = pd.read_csv(MRI_LIST_PATH,
+                           dtype={"STUDYID": "Int64", "SERIESID": "Int64", "IMAGEUID": "Int64"})
+    visit_metadata = pd.read_csv(VISITS_PATH, dtype={"VISORDER": "Int64"})
 
     for folder in sub_folders:
         patient_folder = f"{dataset_path}/{folder}"
@@ -54,9 +59,6 @@ def default_preprocessing_generator(dataset_path, adni_merge_path, mri_list_path
                         continue
                     else:
                         nii_file = f"{data_files_folder}/{files_with_nii_extension[0]}"
-                        mri_list = pd.read_csv(mri_list_path,
-                                               dtype={"STUDYID": "Int64", "SERIESID": "Int64", "IMAGEUID": "Int64"})
-                        visit_metadata = pd.read_csv(visits_path, dtype={"VISORDER": "Int64"})
 
                         # Matching the image metadata with MRILIST.csv
                         subject_match = mri_list["SUBJECT"] == patient_id
@@ -79,8 +81,13 @@ def default_preprocessing_generator(dataset_path, adni_merge_path, mri_list_path
                             visname = visit_name
 
                         visit_code = visit_metadata[visit_metadata["VISNAME"] == visname]["VISCODE"].iloc[0]
+
+                        # https://adni.loni.usc.edu/wp-content/uploads/2008/07/adni2-procedures-manual.pdf page 37
+                        # The window from Screening to Baseline is 28 days
+                        is_screening = visit_code == "sc"
+
                         ptid_match = adni_merge["PTID"] == patient_id
-                        viscode_match = adni_merge["VISCODE"] == visit_code
+                        viscode_match = adni_merge["VISCODE"] == (visit_code if not is_screening else "bl")
                         adni_merge_record = adni_merge[ptid_match & viscode_match]
 
                         if adni_merge_record.empty:

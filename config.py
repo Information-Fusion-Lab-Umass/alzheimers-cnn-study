@@ -4,6 +4,7 @@ import uuid
 from argparse import Namespace, ArgumentParser
 from typing import Tuple, List
 
+import torch
 from tensorboardX import SummaryWriter
 
 
@@ -35,11 +36,8 @@ def _get_config() -> Tuple[Namespace, List[str]]:
     parser.add_argument("--dataset-size-limit", type=int, default=-1,
                         help="Limits the size of the data used for experiment, used for debugging purposes. Set to -1 "
                              "to use the whole set.")
-    parser.add_argument("--mapping-path", type=str, default="s",
-                        help="Where the mapping file that points to where the MRI data path is located")
-    parser.add_argument("--image-columns", type=str, nargs="+",
-                        help="The names of the columns that contain the paths to the images. Options are csf_path, "
-                             "gray_matter_path, white_matter_path, skull_intact_path.")
+    parser.add_argument("--image-column", type=str, default="DX",
+                        help="The names of the columns that contain the path to the image.")
     parser.add_argument("--label-column", type=str, default="DX",
                         help="The name of the column that contains the label.")
     parser.add_argument("--brain-mask-path", type=str, default=None,
@@ -51,7 +49,7 @@ def _get_config() -> Tuple[Namespace, List[str]]:
                         help="K-fold cross-validation for the training dataset.")
     parser.add_argument("--testin-split", type=float, default=0.2,
                         help="Decimal percentage of data allocated to testing.")
-    parser.add_argument("--pretrain-epochs", type=int, default=100,
+    parser.add_argument("--pretrain-epochs", type=int, default=-1,
                         help="Number of pre-training epochs to perform.")
     parser.add_argument("--train-epochs", type=int, default=100,
                         help="Number of training epochs to perform.")
@@ -141,3 +139,21 @@ class SummaryWriterWrapper(object):
 
 
 tensorboard = SummaryWriterWrapper(config.write_tensorboard)
+
+
+def configure_device():
+    """ Setups the device (CPU vs GPU) for the engine.
+    """
+    cuda_available = torch.cuda.is_available()
+    use_gpu = config.use_gpu
+    gpu_count = torch.cuda.device_count()
+
+    if cuda_available and use_gpu and gpu_count > 0:
+        logger.info(f"Using {gpu_count} GPU for training.")
+        return torch.device("cuda")
+    else:
+        logger.info(f"Using CPU for training.")
+        return torch.device("cpu")
+
+
+configured_device = configure_device()

@@ -18,5 +18,5 @@ def load_nii_image(image_path: str) -> Optional[np.ndarray]:
     return image
 
 
-def load_npz_image(image_path: str) -> Optional[np.ndarray]:
-	return np.load(image_path)
+def load_npy_image(image_path: str) -> Optional[np.ndarray]:
+    return np.load(image_path)

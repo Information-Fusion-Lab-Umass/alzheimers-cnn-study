@@ -1,24 +1,27 @@
 from abc import abstractmethod, ABC
+from typing import Tuple
 
-import torch.nn as nn
+from torch import Tensor
 
 from lib import Object
+from lib.models.module import Module
 
 
-class Model(Object, nn.Module, ABC):
+class Model(Module, ABC):
     def __init__(self):
         Object.__init__(self)
-        nn.Module.__init__(self)
+        Module.__init__(self)
         ABC.__init__(self)
 
     @abstractmethod
-    def forward(self):
+    def forward(self, images: Tensor) -> Tensor:
         pass
 
     @abstractmethod
-    def classification_loss(self):
+    def classification_loss(self, images: Tensor, labels: Tensor) -> Tuple[Tensor, Tensor]:
+        """Should return a tuple of two Tensors, the first being the loss, the second being the predicted output.
+        """
         pass
 
-    @abstractmethod
-    def reconstruction_loss(self):
+    def reconstruction_loss(self, images: Tensor) -> Tensor:
         pass
