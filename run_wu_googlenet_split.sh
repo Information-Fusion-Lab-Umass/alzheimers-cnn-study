@@ -1,38 +1,34 @@
 #!/bin/bash
 #
-#SBATCH --job-name=debug-script
+#SBATCH --job-name=wu-et-al
 #SBATCH -e outputs/errors/%j.txt        # File to which STDERR will be written
 #SBATCH --output=outputs/logs/%j.txt    # Output file
-#SBATCH --partition=m40-long
+#SBATCH --partition=titanx-long
 #SBATCH --ntasks=12                     # Set to max_workers + 2
 #SBATCH --time=04-00:00                 # Runtime in D-HH:MM
-#SBATCH --mem=90000
-#SBATCH --gres=gpu:2
+#SBATCH --mem=45000
+#SBATCH --gres=gpu:1
 
 # To make a boolean option False, simply prefix with "no-"
 export cmd="python3 main.py \
 --run-id=$SLURM_JOB_ID \
 --log-level 20 \
---no-write-tensorboard \
+--write-tensorboard \
 --log-to-stdout \
 --no-log-to-file \
---no-save-best-model \
+--save-best-model \
+--save-results \
 --use-gpu \
 --image-column IMGPATH \
 --label-column DX \
---dataset-size-limit 10 \
+--dataset-size-limit -1 \
 --training-crossval-folds 5 \
---testing-split 0.2 \
---num-workers 0 \
+--num-workers 6 \
 --engine wu_googlenet \
---train-epochs 24 \
---train-optim-lr 0.01 \
---train-optim-wd 0.0005 \
---train-batch-size 10 \
---train-momentum 0.9 \
---validate-batch-size 10 \
---test-batch-size 10 \
---optimizer SGD"
+--train-epochs 400 \
+--train-batch-size 128 \
+--validate-batch-size 256 \
+--test-batch-size 256"
 
 echo ""
 echo "Executing \"$cmd\""

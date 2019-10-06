@@ -1,5 +1,6 @@
+import os
 from abc import abstractmethod, ABC
-from typing import Optional, Type, Dict, Union, List
+from typing import Optional, Type, Dict, Union, List, Iterable, Tuple
 
 import torch
 import torch.nn as nn
@@ -27,10 +28,13 @@ class Engine(Object, ABC):
         self.model_output_folder = f"outputs/weights/{self.config.run_id}"
         self.result_output_folder = f"outputs/results/{self.config.run_id}"
 
-        self.pretrain_optim: Optional[Type[Optimizer]] = None
-        self.train_optim: Optional[Type[Optimizer]] = None
+        if self.config.save_best_model and not os.path.exists(self.model_output_folder):
+            os.mkdir(self.model_output_folder)
+        if self.config.save_results and not os.path.exists(self.result_output_folder):
+            os.mkdir(self.result_output_folder)
 
-        self.device = configured_device
+        self.model: Optional[Union[Type[Model], nn.DataParallel]] = None
+        self.optimizer: Optional[Type[Optimizer]] = None
 
         self.logger.info(f"Loading data mapping...")
         manifest_file = f"{self.provide_data_path()}/manifest.csv"
@@ -42,38 +46,55 @@ class Engine(Object, ABC):
         self.label_encoder.fit(labels)
         self.logger.info(f"Created encoder with classes: {self.label_encoder.classes_}.")
 
-        self.logger.info(f"Setting up model...")
-        self.model: Union[Type[Model], nn.DataParallel] = self.provide_model()
+    @property
+    def num_gpus(self) -> int:
+        return torch.cuda.device_count()
 
-        self.logger.info(f"Setting up optimizer...")
-        self.setup_optimizer()
+    @property
+    def device(self) -> torch.device:
+        return configured_device
 
     def save_current_model(self, file_name: str):
+        if not self.config.save_best_model:
+            self.logger.info("Configuration save_best_model set to false, skipping checkpoint.")
+            return
+
         output_path = f"{self.model_output_folder}/{file_name}"
         Engine.save_model(self.model, output_path)
         self.logger.info(f"Saved current model to {output_path}")
 
     def pretty_print_results(self,
                              result: Result,
+                             step: str,
                              name: str,
-                             epoch: int = 0,
-                             label_encoder: LabelEncoder = None):
-        overall_accuracy = {"accuracy": result.calculate_accuracy()}
-        class_accuracy = result.calculate_accuracy_by_class()
+                             epoch: int = 0):
+        overall_accuracy_pct = {"accuracy": result.calculate_accuracy_pct()}
+        overall_accuracy_num = result.calculate_accuracy_num()
+        class_accuracy_pct = result.calculate_accuracy_by_class_pct()
+        class_accuracy_num = result.calculate_accuracy_by_class_num()
         loss = result.calculate_mean_loss()
 
         self.logger.info(
             f"Epoch {epoch + 1} {name} results:"
             f"\n\t mean loss: {loss}"
-            f"\n\t overall accuracy: {overall_accuracy}"
-            f"\n\t class accuracy: {class_accuracy}"
+            f"\n\t overall accuracy pct: {overall_accuracy_pct}"
+            f"\n\t overall accuracy: {overall_accuracy_num}"
+            f"\n\t class accuracy pct: {class_accuracy_pct}"
+            f"\n\t class accuracy: {class_accuracy_num}"
         )
 
-        if loss is not None:
-            self.tensorboard.add_scalar(f"{name}/loss", loss, epoch)
+        # space is illegal in Tensorboard
+        name = "_".join(name.split(" "))
 
-        self.tensorboard.add_scalars(f"{name}/accuracy", {
-            **overall_accuracy, **class_accuracy
+        if loss is not None:
+            self.tensorboard.add_scalar(f"{step}/{name}/loss", loss, epoch)
+
+        self.tensorboard.add_scalars(f"{step}/{name}/pct_accuracy", {
+            **overall_accuracy_pct, **class_accuracy_pct
+        }, epoch)
+
+        self.tensorboard.add_scalars(f"{step}/{name}/num_accuracy", {
+            **overall_accuracy_num, **class_accuracy_num
         }, epoch)
 
     # ==================================================================================================================
@@ -110,6 +131,22 @@ class Engine(Object, ABC):
     # ==================================================================================================================
     # Training and testing code
     # ==================================================================================================================
+    def get_training_args(self, **kwargs) -> Dict[str, object]:
+        """Default arguments to be passed into loop_through_data_for_training.
+        """
+        default_args = {
+            "model": self.model,
+            "optimizer": self.optimizer,
+            "mapping": self.mapping,
+            "reconstruction": False,
+            "batch_size": self.config.train_batch_size,
+            "num_workers": self.config.num_workers
+        }
+
+        default_args.update(kwargs)
+
+        return default_args
+
     def loop_through_data_for_training(self,
                                        model: Union[Model, nn.DataParallel],
                                        optimizer: Optimizer,
@@ -150,6 +187,20 @@ class Engine(Object, ABC):
                   loss.detach().cpu(), \
                   pred.detach().cpu() if pred is not None else pred
 
+    def get_testing_args(self, **kwargs) -> Dict[str, object]:
+        """Default arguments to be passed into loop_through_data_for_training.
+        """
+        default_args = {
+            "model": self.model,
+            "mapping": self.mapping,
+            "batch_size": self.config.train_batch_size,
+            "num_workers": self.config.num_workers
+        }
+
+        default_args.update(kwargs)
+
+        return default_args
+
     @torch.no_grad()
     def loop_through_data_for_testing(self,
                                       model: Union[Model, nn.DataParallel],
@@ -167,14 +218,15 @@ class Engine(Object, ABC):
             model.to(device=self.device)
 
             images = images.float().to(device=self.device)
-            labels = labels.long().to(device=self.device)
+            labels = labels.squeeze().long().to(device=self.device)
 
             if type(model) == torch.nn.DataParallel:
-                scores = model.module(images)
+                loss, scores = model.module.classification_loss(images, labels)
             else:
-                scores = model(images)
+                loss, scores = model.classification_loss(images, labels)
 
             result.append_scores(scores, labels)
+            result.append_loss(loss)
 
         return result
 
@@ -192,40 +244,53 @@ class Engine(Object, ABC):
             torch.save(model.state_dict(), output_path)
 
     # ==================================================================================================================
-    # Optimizer setup
+    # Model and optimizer setup
     # ==================================================================================================================
 
-    def setup_optimizer(self):
-        assert self.model is not None, "Attempting to create optimizer before setting up the model."
-
-        optimizer_params = {
-            "lr": self.config.pretrain_optim_lr,
-            "weight_decay": self.config.pretrain_optim_wd,
-            "momentum": self.config.pretrain_optim_momentum
-        }
-        optimizer_type = self.config.pretrain_optimizer
-
-        self.logger.info(f"Building pre-training optimizer with the following parameters: {optimizer_params}")
-        self.pretrain_optim = Engine._build_optimizer(self.model, optimizer_type, optimizer_params)
-
-        optimizer_params = {
+    def get_optimizer_args(self, **kwargs):
+        default_args = {
             "lr": self.config.train_optim_lr,
             "weight_decay": self.config.train_optim_wd,
             "momentum": self.config.train_momentum
         }
-        optimizer_type = self.config.train_optimizer
 
-        self.logger.info(f"Building training optimizer with the following parameters: {optimizer_params}")
-        self.train_optim = Engine._build_optimizer(self.model, optimizer_type, optimizer_params)
+        default_args.update(kwargs)
+
+        return default_args
+
+    def build_model(self, from_path: str = None, **optimizer_params) -> Tuple[Type[Model], Optional[Optimizer]]:
+        """Build a model and optimizer from the given params. If from_path is provided, weights from from_path will
+        be used to initialize the model.
+        """
+        model = self.provide_model()
+        optimizer = None
+
+        if from_path is not None:
+            model = Engine.initialize_model(model, from_path)
+
+        if len(optimizer_params.items()) > 0:
+            optimizer_type = optimizer_params.get("optimizer_type", "sgd")
+            del optimizer_params["optimizer_type"]
+            optimizer = Engine.build_optimizer(model.parameters(), optimizer_type, **optimizer_params)
+
+        return model, optimizer
 
     @classmethod
-    def _build_optimizer(cls,
-                         model: Type[Model],
-                         optimizer_type: str,
-                         optimizer_params: Dict[str, str]) -> Type[Optimizer]:
+    def initialize_model(cls, model: Type[Model], from_path: str) -> Type[Model]:
+        """Initialize the input model with weights from from_path.
+        """
+        state_dict = torch.load(from_path)
+        model.load_state_dict(state_dict)
+        return model
+
+    @classmethod
+    def build_optimizer(cls,
+                        parameters: Iterable[object],
+                        optimizer_type: str,
+                        **optimizer_params) -> Optimizer:
         optimizer_type = optimizer_type.lower()
 
         if optimizer_type == "adam":
             del optimizer_params["momentum"]
 
-        return Engine.OPTIMIZER_TYPES[optimizer_type](model.parameters(), **optimizer_params)
+        return Engine.OPTIMIZER_TYPES[optimizer_type](parameters, **optimizer_params)

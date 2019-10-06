@@ -20,7 +20,7 @@ def _get_config() -> Tuple[Namespace, List[str]]:
                         help="Logging level, see Python logging module for deatils.")
     parser.add_argument("--write-tensorboard", dest="write_tensorboard", action="store_true", default=False,
                         help="Whether to create tensorboard.")
-    parser.add_argument("--save-result", dest="save_result", action="store_true", default=False,
+    parser.add_argument("--save-results", dest="save_results", action="store_true", default=False,
                         help="Whether to save the test results for analysis later.")
     parser.add_argument("--log-to-file", dest="log_to_file", action="store_true", default=False,
                         help="Whether to write logs to a file.")
@@ -33,6 +33,9 @@ def _get_config() -> Tuple[Namespace, List[str]]:
                         help="Which engines to use. See all of the available engines in the lib/types.py.")
     parser.add_argument("--use-gpu", dest="use_gpu", action="store_true", default=False,
                         help="Whether to use GPU for training and testing.")
+    parser.add_argument("--remove-outputs-after-completion", dest="remove_outputs_after_completion",
+                        action="store_true", default=False, help="Whether to remove outputs (weights, results) after "
+                                                                 "the run finishes.")
     parser.add_argument("--dataset-size-limit", type=int, default=-1,
                         help="Limits the size of the data used for experiment, used for debugging purposes. Set to -1 "
                              "to use the whole set.")
@@ -114,7 +117,7 @@ class SummaryWriterWrapper(object):
         self.write_tensorboard = write_tensorboard
 
         if self.write_tensorboard:
-            self.output_path = f"outputs/tensorboards/{config.run_id}.tb"
+            self.output_path = f"outputs/tensorboards/{config.run_id}"
             self.summary_writer = SummaryWriter(self.output_path)
         else:
             self.output_path = None

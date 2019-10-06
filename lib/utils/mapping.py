@@ -1,5 +1,6 @@
 import pickle
 from collections import Iterable
+from copy import deepcopy
 from math import floor
 from typing import List
 
@@ -33,15 +34,38 @@ class Mapping(Object, Iterable):
     def __contains__(self, item) -> bool:
         return item in self.mapping
 
+    def __add__(self, other: 'Mapping') -> 'Mapping':
+        return Mapping(mapping=deepcopy(self.mapping + other.mapping))
+
+    def __deepcopy__(self, memodict={}) -> 'Mapping':
+        return Mapping(mapping=deepcopy(self.mapping))
+
     def split_by_ratio(self, ratios: List[float]) -> List["Mapping"]:
         """This method splits the mapped images into sets based on the specified ratio.
         """
         assert sum(ratios) == 1.0, "Split ratio must add up to 1.0"
         num_total = len(self.mapping)
         num_per_split = list(map(lambda x: floor(num_total * x), ratios))
-        splits = list(map(lambda x: Mapping(mapping=self.mapping[x]), num_per_split))
-
+        splits = [Mapping(mapping=deepcopy(self.mapping[i * num:i * num + num])) for i, num in enumerate(num_per_split)]
         return splits
+
+    def shuffle(self) -> 'Mapping':
+        """Returns a cloned object containing shuffled records.
+        """
+        mapping_copy = deepcopy(self.mapping)
+        return Mapping(mapping=mapping_copy)
+
+    @classmethod
+    def merge(cls, mappings: List['Mapping']) -> 'Mapping':
+        result = None
+
+        for idx in range(len(mappings)):
+            if result is None:
+                result = mappings[idx]
+            else:
+                result += mappings[idx]
+
+        return deepcopy(result)
 
     # ==================================================================================================================
     # Helper methods
