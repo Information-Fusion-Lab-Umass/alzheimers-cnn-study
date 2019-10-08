@@ -7,6 +7,7 @@
 #SBATCH --time=04-00:00                 # Runtime in D-HH:MM
 #SBATCH --mem=230000
 #SBATCH --gres=gpu:2
+#SBATCH --ntasks=12 
 
 # To make a boolean option False, simply prefix with "no-"
 export cmd="python3 main.py \
@@ -17,7 +18,7 @@ export cmd="python3 main.py \
 --no_log_to_file \
 --no_save_best_model \
 --use_gpu \
---data_path data/NDJ_wang_splitByMRI_data.csv \
+--data_path data/NDJ_wang_splitByPaper_data.csv \
 --brain_mask_path=$MASK_ICV_PATH \
 --image_columns brain_mri_path \
 --label_column DX \
@@ -29,7 +30,7 @@ export cmd="python3 main.py \
 --pretrain_optim_wd 0.01 \
 --pretrain_batch_size 2 \
 --train_epochs 150 \
---train_optim_lr 0.01 \
+--train_optim_lr 0.001 \
 --train_optim_wd 0.0005 \
 --train_batch_size 10 \
 --train_momentum 0.9 \
