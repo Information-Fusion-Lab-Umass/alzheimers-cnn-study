@@ -24,4 +24,6 @@ class Model(Module, ABC):
         pass
 
     def reconstruction_loss(self, images: Tensor) -> Tensor:
+        """Inherit this for autoencoder models and simply return a tensor containing the loss.
+        """
         pass

@@ -2,14 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f868dcbd-ce65-475b-92da-16ef355970be" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/alzheimers-cnn-study.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/alzheimers-cnn-study.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/engines/engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/engines/engine.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/engines/wu_googlenet_engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/engines/wu_googlenet_engine.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/utils/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/mapping.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/models/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/models/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/utils/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/dataset.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/utils/result.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/result.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_wu_googlenet_split.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_wu_googlenet_split.sh" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -37,7 +35,7 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.Python" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyIntegratedToolsModulesConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -96,7 +94,10 @@
       <workItem from="1569949158322" duration="144000" />
       <workItem from="1569960581442" duration="3958000" />
       <workItem from="1569988874574" duration="1020000" />
-      <workItem from="1570297364985" duration="39055000" />
+      <workItem from="1570297364985" duration="39512000" />
+      <workItem from="1570486448441" duration="64000" />
+      <workItem from="1570488352331" duration="1520000" />
+      <workItem from="1570574990231" duration="2147000" />
     </task>
     <servers />
   </component>

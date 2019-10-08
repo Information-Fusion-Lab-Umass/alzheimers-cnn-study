@@ -1,6 +1,5 @@
 import pickle
-from pdb import set_trace
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 import torch
 from sklearn.preprocessing import LabelEncoder
@@ -49,11 +48,20 @@ class Result(Object):
         scores = self.state["scores"]
         labels = self.state["labels"]
 
+        if scores is None or labels is None:
+            self.logger.warning("Calling calculate_accuracy_pct() on Result object with no data!")
+            return 0.0
+
         return Result._calculate_accuracy(scores, labels)[0]
 
     def calculate_accuracy_num(self) -> Dict[str, int]:
         scores = self.state["scores"]
         labels = self.state["labels"]
+
+        if scores is None or labels is None:
+            self.logger.warning("Calling calculate_accuracy_num() on Result object with no data!")
+            return {"num_correct": 0, "num_total": 0}
+
         _, num_correct, num_total = Result._calculate_accuracy(scores, labels)
 
         return {
@@ -67,6 +75,10 @@ class Result(Object):
         classes = label_encoder.classes_
         scores = self.state["scores"]
         labels = self.state["labels"]
+
+        if scores is None or labels is None:
+            self.logger.warning("Calling calculate_accuracy_by_class_pct() on Result object with no data!")
+            return {"N/A": 0.0}
 
         result = {}
 
@@ -88,6 +100,10 @@ class Result(Object):
         scores = self.state["scores"]
         labels = self.state["labels"]
 
+        if scores is None or labels is None:
+            self.logger.warning("Calling calculate_accuracy_by_class_pct() on Result object with no data!")
+            return {"N/A": 0}
+
         result = {}
 
         for c in classes:
@@ -103,11 +119,12 @@ class Result(Object):
 
         return result
 
-    def calculate_mean_loss(self) -> Optional[float]:
+    def calculate_mean_loss(self) -> float:
         if self.state["loss"] is not None:
             return self.state["loss"].mean().item()
         else:
-            return None
+            self.logger.warning("Calling calculate_mean_loss() on Result object with no data!")
+            return 0.0
 
     def save_state(self, file_path: str):
         if not self.config.save_results:
@@ -130,10 +147,7 @@ class Result(Object):
 
     @classmethod
     def _calculate_accuracy(cls, scores: Tensor, labels: Tensor) -> Tuple[float, int, int]:
-        try:
-            num_correct = (scores.argmax(dim=1) == labels).sum().item()
-        except:
-            set_trace()
+        num_correct = (scores.argmax(dim=1) == labels).sum().item()
         num_total = len(scores)
         pct_correct = (num_correct * 1.0) / num_total
 

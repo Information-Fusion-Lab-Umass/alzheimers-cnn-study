@@ -44,6 +44,9 @@ class Dataset(Object, ABC, data.Dataset):
         else:
             raise Exception(f"Unrecognized file extension: {image_path[-3:]} in {image_path}")
 
+        if self.transforms is not None:
+            image = self.transforms(image)
+
         return image, self.label_encoder.transform([label])
 
     def provide_transforms(self, transforms: List[object]):

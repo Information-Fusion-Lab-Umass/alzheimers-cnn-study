@@ -16,12 +16,6 @@ from lib.utils import Mapping, Dataset, Result
 
 
 class Engine(Object, ABC):
-    OPTIMIZER_TYPES = {
-        "adam": optim.Adam,
-        "sgd": optim.SGD,
-        "rmsprop": optim.RMSprop
-    }
-
     def __init__(self):
         Object.__init__(self)
         ABC.__init__(self)
@@ -67,7 +61,16 @@ class Engine(Object, ABC):
                              result: Result,
                              step: str,
                              name: str,
-                             epoch: int = 0):
+                             epoch: int = 0) -> None:
+        """Prints the Result object in a human-friendly format as well as logging the results to the session tensorboard
+        instance.
+
+        Args:
+            result: The lib.utils.result.Result object.
+            step: e.g. "train", "validation", or "test"
+            name: e.g. "1st fold", "
+            epoch: The nth training epoch
+        """
         overall_accuracy_pct = {"accuracy": result.calculate_accuracy_pct()}
         overall_accuracy_num = result.calculate_accuracy_num()
         class_accuracy_pct = result.calculate_accuracy_by_class_pct()
@@ -102,7 +105,9 @@ class Engine(Object, ABC):
     # ==================================================================================================================
 
     @abstractmethod
-    def provide_model(self):
+    def provide_model(self) -> Model:
+        """Inherit this method to return an instantiated model to be used.
+        """
         pass
 
     @abstractmethod
@@ -115,12 +120,9 @@ class Engine(Object, ABC):
     @abstractmethod
     def provide_image_transforms(self) -> List[object]:
         """Override this method to provide a list of image transforms that will be applied to each image. The method
-        expects at the very least the T.ToTensor() transform.
+        expects at minimum the T.ToTensor() transform.
         """
         return [T.ToTensor()]
-
-    def pretrain(self, num_epochs: int) -> None:
-        pass
 
     @abstractmethod
     def run(self, *inputs, **kwargs) -> None:
@@ -153,11 +155,26 @@ class Engine(Object, ABC):
                                        mapping: Mapping,
                                        reconstruction: bool = False,
                                        **loader_params):
+        """A generator function that takes in a model, optimizer, and data mapping, and loops through the data with the
+        model.
+
+        Example:
+            default_args = self.get_training_args(model=different_model, reconstruction=true)
+            for (input_images, labels, loss, predictions) in loop_through_data_for_training(**default_args):
+                # do stuff with loss or predictions
+
+        Args:
+            model: The model to train the data with.
+            optimizer: The optimizer with the model's parameters set as target.
+            mapping: A lib.util.mapping.Mapping object.
+            reconstruction: Whether to calculate the reconstruction loss instead of the classification loss.
+            **loader_params: Any key-value arguments applicable to the torch.utils.data.DataLoader class, see a list
+                here https://pytorch.org/docs/stable/data.html
+        """
         loader = Dataset.build_loader(mapping,
                                       label_encoder=self.label_encoder,
                                       image_transforms=self.provide_image_transforms(),
                                       **loader_params)
-
         for iter_idx, (images, labels) in enumerate(loader):
             model.to(device=self.device)
             images = images.float().to(device=self.device)
@@ -206,6 +223,17 @@ class Engine(Object, ABC):
                                       model: Union[Model, nn.DataParallel],
                                       mapping: Mapping,
                                       **loader_params) -> Result:
+        """A function that loops through the provided data and returns a lib.utils.result.Result object, which can then
+        be used to calculate scores.
+
+        Args:
+            model: The model to make predictions.
+            mapping: A lib.util.mapping.Mapping object.
+            **loader_params: Any key-value arguments applicable to the torch.utils.data.DataLoader class, see a list
+                here https://pytorch.org/docs/stable/data.html
+
+        Returns: A lib.utils.result.Result object.
+        """
         loader = Dataset.build_loader(mapping,
                                       label_encoder=self.label_encoder,
                                       image_transforms=self.provide_image_transforms(),
@@ -235,7 +263,7 @@ class Engine(Object, ABC):
     # ==================================================================================================================
 
     @classmethod
-    def save_model(cls, model: Type[Model], output_path: str):
+    def save_model(cls, model: Union[Model, torch.nn.DataParallel], output_path: str):
         model = model.cpu()
 
         if type(model) == torch.nn.DataParallel:
@@ -276,12 +304,24 @@ class Engine(Object, ABC):
         return model, optimizer
 
     @classmethod
-    def initialize_model(cls, model: Type[Model], from_path: str) -> Type[Model]:
-        """Initialize the input model with weights from from_path.
+    def initialize_model(cls, model: Type[Model], from_path: str) -> Model:
+        """Initialize the weights of the model from file containing previously saved weights.
+
+        Args:
+            model: Model whose weights will be initialized from file.
+            from_path: Path to the file.
+
+        Returns: A model with weights initialized from file containing previously saved weights.
         """
         state_dict = torch.load(from_path)
         model.load_state_dict(state_dict)
         return model
+
+    OPTIMIZER_TYPES = {
+        "adam": optim.Adam,
+        "sgd": optim.SGD,
+        "rmsprop": optim.RMSprop
+    }
 
     @classmethod
     def build_optimizer(cls,
