@@ -6,7 +6,7 @@ ADNI_merge = pd.read_csv("/mnt/nfs/work1/mfiterau/yfung/MRI/src/outputs/ADNIMERG
 MRI_list = pd.read_csv("/mnt/nfs/work1/mfiterau/zguan/alzheimers-cnn-study/data/MRILIST.csv", header=0)
 VISITS_list = pd.read_csv("/mnt/nfs/work1/mfiterau/zguan/alzheimers-cnn-study/data/VISITS.csv", header=0)
 
-subdir_num = "0"
+subdir_num = "3"
 source_MRI = "/mnt/nfs/work1/mfiterau/ADNI_data/wang_et_al/" + "data" + subdir_num + "/"
 
 bet_cropped_dir = "/mnt/nfs/work1/mfiterau/ADNI_data/wang_et_al/cropped"
@@ -47,17 +47,35 @@ def preprocess_wang(PTID, VISCODE, MRI_path):
     flirt_command = "flirt -in " + file_skullstripped_name
     flirt_command += " -ref /mnt/nfs/work1/mfiterau/yfung/fsl/data/standard/MNI152_T1_2mm_brain.nii.gz"
     flirt_command += " -out " + file_registered_name + " -omat " + PTID +"_"+VISCODE+".mat"
-    if os.path.exists(bet_cropped_dir + "/" + PTID + "/" + VISCODE) == False:
-        os.mkdir(bet_cropped_dir + "/" + PTID + "/" + VISCODE)
+    if os.path.exists(bet_cropped_dir + "/" + PTID + "/" + VISCODE + "/" + file_cropped_name) == False:
+        if os.path.exists(bet_cropped_dir + "/" + PTID + "/" + VISCODE) == False:
+            os.mkdir(bet_cropped_dir + "/" + PTID + "/" + VISCODE)
         os.system(crop_neck_command)
-    if os.path.exists(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE) == False:
-        os.mkdir(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE)
+    if os.path.exists(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE + "/" + file_skullstripped_name) == False:
+        if os.path.exists(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE) == False:
+            os.mkdir(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE)
         os.system(bet_command)
-    if os.path.exists(bet_registered_dir + "/" + PTID + "/" + VISCODE) == False:
-        os.mkdir(bet_registered_dir + "/" + PTID + "/" + VISCODE)
+    if os.path.exists(bet_registered_dir + "/" + PTID + "/" + VISCODE + "/" + file_registered_name) == False:
+        if os.path.exists(bet_registered_dir + "/" + PTID + "/" + VISCODE) == False:
+            os.mkdir(bet_registered_dir + "/" + PTID + "/" + VISCODE)
         os.system(flirt_command)
         label = ADNI_merge[(ADNI_merge["PTID"] == PTID) & (ADNI_merge["VISCODE"] == VISCODE)]["DX"].iloc[0]
         BET_data_mapping.append([PTID, VISCODE, label, MRI_path])
+
+def preprocess_soes(PTID, VISCODE, MRI_path):
+    if os.path.exists(bet_skullstripped_dir + "/" + PTID) == False:
+        os.mkdir(bet_skullstripped_dir + "/" + PTID)
+    file_name = os.listdir(MRI_path)[0]
+    file_orig_name = MRI_path + "/" + file_name
+    file_skullstripped_name = bet_skullstripped_dir + "/" + PTID + "/" + VISCODE + "/" + file_name
+    bet_command = "bet " + file_orig_name + " " + file_skullstripped_name + " -R"
+    if os.path.exists(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE) == False:
+        os.mkdir(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE)
+    if os.path.exists(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE + "/" + file_skullstripped_name) == False:
+        os.system(bet_command)
+        label = ADNI_merge[(ADNI_merge["PTID"] == PTID) & (ADNI_merge["VISCODE"] == VISCODE)]["DX"].iloc[0]
+        BET_data_mapping.append([PTID, VISCODE, label, MRI_path])
+
 
 for subj in os.listdir(source_MRI):
     PTID = subj
