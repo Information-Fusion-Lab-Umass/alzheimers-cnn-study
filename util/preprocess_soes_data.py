@@ -6,12 +6,10 @@ ADNI_merge = pd.read_csv("/mnt/nfs/work1/mfiterau/yfung/MRI/src/outputs/ADNIMERG
 MRI_list = pd.read_csv("/mnt/nfs/work1/mfiterau/zguan/alzheimers-cnn-study/data/MRILIST.csv", header=0)
 VISITS_list = pd.read_csv("/mnt/nfs/work1/mfiterau/zguan/alzheimers-cnn-study/data/VISITS.csv", header=0)
 
-subdir_num = "0"
-source_MRI = "/mnt/nfs/work1/mfiterau/ADNI_data/wang_et_al/" + "data" + subdir_num + "/"
+subdir_num = "1"
+source_MRI = "/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/" + "data" + subdir_num + "/"
 
-bet_cropped_dir = "/mnt/nfs/work1/mfiterau/ADNI_data/wang_et_al/cropped"
-bet_skullstripped_dir = "/mnt/nfs/work1/mfiterau/ADNI_data/wang_et_al/skullstripped"
-bet_registered_dir = "/mnt/nfs/work1/mfiterau/ADNI_data/wang_et_al/registered"
+bet_skullstripped_dir = "/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped"
 
 BET_data_mapping = []
 
@@ -24,6 +22,14 @@ def match_viscode(PTID, series_ID):
             visname = VIS_info.split(" ")[1]
         elif VIS_info[:9] == "ADNI1/GO ":
             visname = " ".join(VIS_info.split(" ")[1:])
+        elif "Month" in VIS_info: 
+            num = "03" if "3" in VIS_info else "06"
+            return "m" + num
+        elif "Year" in VIS_info:
+            num = VIS_info.split(" ")[2]
+            return "m" + str(int(num)*12)
+        elif "Screening" in VIS_info:
+            return "bl"
         else: 
             visname = VIS_info
         VISCODE = VISITS_list[VISITS_list["VISNAME"] == visname]["VISCODE"]
@@ -35,35 +41,24 @@ def match_viscode(PTID, series_ID):
             return VISCODE
     return None
 
-def preprocess_wang(PTID, VISCODE, MRI_path):
-    if os.path.exists(bet_cropped_dir + "/" + PTID) == False:
-        os.mkdir(bet_cropped_dir + "/" + PTID)
+def dcm2niix():
+    pass
+
+def preprocess_soes(PTID, VISCODE, MRI_path):
+    if os.path.exists(bet_skullstripped_dir + "/" + PTID) == False:
         os.mkdir(bet_skullstripped_dir + "/" + PTID)
-        os.mkdir(bet_registered_dir + "/" + PTID)
-    file_name = os.listdir(MRI_path)[0]
-    file_orig_name = MRI_path + "/" + file_name
-    file_cropped_name = bet_cropped_dir + "/" + PTID + "/" + VISCODE + "/" + file_name 
+    file_name = MRI_path.split("/")[-1]
+    file_orig_name = MRI_path 
     file_skullstripped_name = bet_skullstripped_dir + "/" + PTID + "/" + VISCODE + "/" + file_name
-    file_registered_name = bet_registered_dir + "/" + PTID + "/" + VISCODE + "/" + file_name 
-    crop_neck_command = "robustfov -i " + file_orig_name + " -r " + file_cropped_name
-    bet_command = "bet " + file_cropped_name + " " + file_skullstripped_name + " -R"
-    flirt_command = "flirt -in " + file_skullstripped_name
-    flirt_command += " -ref /mnt/nfs/work1/mfiterau/yfung/fsl/data/standard/MNI152_T1_2mm_brain.nii.gz"
-    flirt_command += " -out " + file_registered_name + " -omat " + PTID +"_"+VISCODE+".mat"
-    if os.path.exists(bet_cropped_dir + "/" + PTID + "/" + VISCODE) == False:
-        os.mkdir(bet_cropped_dir + "/" + PTID + "/" + VISCODE)
-    if os.listdir(bet_cropped_dir + "/" + PTID + "/" + VISCODE) == []:
-        os.system(crop_neck_command)
+    bet_command = "bet " + file_orig_name + " " + file_skullstripped_name + " -R"
     if os.path.exists(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE) == False:
         os.mkdir(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE)
     if os.listdir(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE) == []:
-        os.system(bet_command)
-    if os.path.exists(bet_registered_dir + "/" + PTID + "/" + VISCODE) == False:
-        os.mkdir(bet_registered_dir + "/" + PTID + "/" + VISCODE)
-    if os.listdir(bet_registered_dir + "/" + PTID + "/" + VISCODE) == []:
-        os.system(flirt_command)
+        print(bet_command)
         label = ADNI_merge[(ADNI_merge["PTID"] == PTID) & (ADNI_merge["VISCODE"] == VISCODE)]["DX"].iloc[0]
+        os.system(bet_command)
         BET_data_mapping.append([PTID, VISCODE, label, MRI_path])
+
 
 for subj in os.listdir(source_MRI):
     PTID = subj
@@ -71,16 +66,20 @@ for subj in os.listdir(source_MRI):
     for preprocessing_type in os.listdir(dir_path):
         dir_subj_path = dir_path + preprocessing_type 
         for vis_date in os.listdir(dir_subj_path):
-            dir_subj_vis_path = dir_subj_path + "/" + vis_date 
-            for series_ID in os.listdir(dir_subj_vis_path):
-                dir_subj_vis_path += "/" + series_ID
-                try:
-                    VISCODE = match_viscode(PTID, series_ID)
-                    if VISCODE is not None:
-                        preprocess_soes(PTID, VISCODE, dir_subj_vis_path)
-                except:
-                    print("Failed for: " + dir_subj_vis_path)
-mri_file_mapping = "/mnt/nfs/work1/mfiterau/yfung/alzheimers-cnn-study/data/wang_et_al_mri_mapping.csv"
+            dir_subj_vis_path, series_ID = dir_subj_path + "/" + vis_date, "" 
+            for data in os.listdir(dir_subj_vis_path): 
+                if data[-3:] == ".gz":
+                    dir_subj_vis_path += "/" + data
+                if data[0] == "S":
+                    series_ID = data
+            try:
+                VISCODE = match_viscode(PTID, series_ID)
+                print(PTID, series_ID, VISCODE)
+                if VISCODE is not None:
+                    preprocess_soes(PTID, VISCODE, dir_subj_vis_path)
+            except:
+                print("Failed for: " + dir_subj_vis_path)
+mri_file_mapping = "/mnt/nfs/work1/mfiterau/yfung/alzheimers-cnn-study/data/soes_et_al_mri_mapping.csv"
 if os.path.exists(mri_file_mapping):
     BET_data_map = pd.read_csv(mri_file_mapping, skiprows=1)
     BET_data_map2 = pd.DataFrame(BET_data_mapping)
