@@ -6,7 +6,7 @@ ADNI_merge = pd.read_csv("/mnt/nfs/work1/mfiterau/yfung/MRI/src/outputs/ADNIMERG
 MRI_list = pd.read_csv("/mnt/nfs/work1/mfiterau/zguan/alzheimers-cnn-study/data/MRILIST.csv", header=0)
 VISITS_list = pd.read_csv("/mnt/nfs/work1/mfiterau/zguan/alzheimers-cnn-study/data/VISITS.csv", header=0)
 
-subdir_num = "1"
+subdir_num = "5"
 source_MRI = "/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/" + "data" + subdir_num + "/"
 
 bet_skullstripped_dir = "/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped"
