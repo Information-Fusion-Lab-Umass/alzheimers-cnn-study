@@ -2,6 +2,8 @@ import os
 import pandas as pd
 import nibabel as nib
 from PIL import Image
+import skimage
+import numpy as np
 
 ADNI_merge = pd.read_csv("/mnt/nfs/work1/mfiterau/yfung/MRI/src/outputs/ADNIMERGE.csv", header=0)
 MRI_list = pd.read_csv("/mnt/nfs/work1/mfiterau/zguan/alzheimers-cnn-study/data/MRILIST.csv", header=0)
@@ -48,23 +50,24 @@ def match_viscode(PTID, series_ID):
 
 def generate_slices(recon_path, dest_path):
     # Shannon entropy, top 32 slices
-    mri = nib.load(recon_path)
-    entropy_idx_list = []
-    for i in mri.shape()[2]:
-        entropy_idx_list.append(skimage.measure.shannon_entropy(img))
-    entropy_idx_list = np.array(entropy_idx_list)
+    mri = nib.load(recon_path).get_data()
+    entropy_list = []
+    for i in range(mri.shape[2]):
+        img = mri[:,i,:]
+        entropy_list.append(skimage.measure.shannon_entropy(img))
+    entropy_idx_list = np.array(entropy_list)
     for idx in entropy_idx_list.argsort()[-32:]: 
-        im = Image.fromarray()
-        mri_dest_path = dest_path + "/slice" + str(idx) + ".png"
+        im = Image.fromarray(mri[:,idx,:])
+        mri_dest_path = dest_path + "/slice" + str(idx) + ".tiff"
         im.save(mri_dest_path)
         BET_data_mapping.append([PTID, VISCODE, label, mri_dest_path])
 
 def preprocess_jain(PTID, VISCODE, MRI_path, label):
     if os.path.exists(bet_skullstripped_dir + "/" + PTID) == False:
         os.mkdir(bet_skullstripped_dir + "/" + PTID)
-    file_name = MRI_path + os.listdir(MRI_path)[0]
+    file_name = MRI_path + "/" + os.listdir(MRI_path)[0]
     file_series_name = MRI_path.split("/")[-1]
-    recon_cmd = "recon-all -autorecon1 -subject " + PTID + " -i " +  135_S_501 -i file_name   
+    recon_cmd = "recon-all -autorecon1 -subject " + PTID + " -i " + file_name   
     if os.path.exists(bet_skullstripped_dir + "/" + PTID + "/" + VISCODE + "/" + file_series_name + ".mgz") == False:
         os.system(recon_cmd)
         if os.path.exists(bet_skullstripped_dir + "/" + PTID) == False:
@@ -75,7 +78,7 @@ def preprocess_jain(PTID, VISCODE, MRI_path, label):
         if os.path.exists(freesurfer_recon_fpath):
             MRI_path = bet_skullstripped_dir + "/" + PTID + "/" + VISCODE
             generate_slices(freesurfer_recon_fpath, MRI_path)
-
+   
 for subj in os.listdir(source_MRI):
     PTID = subj
     dir_path = source_MRI + subj + "/"
@@ -91,17 +94,23 @@ for subj in os.listdir(source_MRI):
                         print(PTID, series_ID, VISCODE)
                         if VISCODE is not None:
                             label = ADNI_merge[(ADNI_merge["PTID"] == PTID) & (ADNI_merge["VISCODE"] == VISCODE)]["DX"].iloc[0]
-                            if (label=="AD" and AD_MRI_COUNT<50) or (label=="MCI" and MCI_MRI_COUNT<50) or (label=="CN" and CN_MRI_COUNT<50):
+                            valid_label = False
+                            #valid_label = valid_label or ((label=="Dementia" or label=="AD") and AD_MRI_COUNT<50)
+                            #valid_label = valid_label or (label=="MCI" and MCI_MRI_COUNT<50)
+                            valid_label = valid_label or (label=="CN" and CN_MRI_COUNT<50)
+                            if valid_label:
                                 dir_subj_vis_path += "/" + series_ID
-                                preprocess_soes(PTID, VISCODE, dir_subj_vis_path, label)
-                                if label == "AD":
+                                preprocess_jain(PTID, VISCODE, dir_subj_vis_path, label)
+                                if label == "Dementia" or label == "AD":
                                     AD_MRI_COUNT += 1
                                 elif label == "MCI":
                                     MCI_MRI_COUNT += 1
                                 elif label == "CN":
                                     CN_MRI_COUNT += 1
+                                break
                     except:
                         print("Failed for: " + dir_subj_vis_path)
+   
 mri_file_mapping = "/mnt/nfs/work1/mfiterau/yfung/alzheimers-cnn-study/data/jain_et_al_mri_mapping.csv"
 if os.path.exists(mri_file_mapping):
     BET_data_map = pd.read_csv(mri_file_mapping, skiprows=1)
