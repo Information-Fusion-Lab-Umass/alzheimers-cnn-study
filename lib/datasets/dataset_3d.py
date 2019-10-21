@@ -11,7 +11,7 @@ class Dataset3D(DatasetBase):
 
         self.transforms = T.Compose([
             T.ToTensor(),
-            PadToSameDim(3),
+            #PadToSameDim(3),
             NaNToNum(),
             RangeNormalize(),
             MeanStdNormalize()
