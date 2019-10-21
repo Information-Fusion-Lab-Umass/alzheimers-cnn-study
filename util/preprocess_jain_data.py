@@ -95,8 +95,8 @@ for subj in os.listdir(source_MRI):
                         if VISCODE is not None:
                             label = ADNI_merge[(ADNI_merge["PTID"] == PTID) & (ADNI_merge["VISCODE"] == VISCODE)]["DX"].iloc[0]
                             valid_label = False
-                            #valid_label = valid_label or ((label=="Dementia" or label=="AD") and AD_MRI_COUNT<50)
-                            #valid_label = valid_label or (label=="MCI" and MCI_MRI_COUNT<50)
+                            valid_label = valid_label or ((label=="Dementia" or label=="AD") and AD_MRI_COUNT<50)
+                            valid_label = valid_label or (label=="MCI" and MCI_MRI_COUNT<50)
                             valid_label = valid_label or (label=="CN" and CN_MRI_COUNT<50)
                             if valid_label:
                                 dir_subj_vis_path += "/" + series_ID

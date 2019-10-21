@@ -1,3 +1,18 @@
+####################################################################
+#
+# This is the script to preprocess Wang et al. brain MRI scans
+#
+# First, we should download the necessary softwares:
+#
+# FSL BET
+# 1. Go to fsl.fmrib.ox.ac.uk/fsldownloads_registration
+# 2. After agreeing to the terms, run this bash command:
+#    wget https://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py.
+# 3. Check that your environments are set up properly at vim ~/.bash_profile
+# 4. yum install libpng12 libmng
+#####################################################################
+
+
 import os
 import pandas as pd
 
