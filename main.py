@@ -1,15 +1,16 @@
-import logging
+import os
 import sys
-import uuid
-from argparse import ArgumentParser
+from shutil import rmtree
 from time import time
+from typing import Type, Dict
 
-import numpy as np
 import torch
 import yaml
-from tensorboardX import SummaryWriter
 
+from config import config, unknown, logger, tensorboard
+from lib.engines import Engine, WuGoogleNetEngine
 
+<<<<<<< HEAD
 def main(config, tb, logger):
     # https://github.com/pytorch/pytorch/issues/1485
     torch.backends.cudnn.benchmark = True
@@ -232,31 +233,52 @@ def _get_logger(config):
     logger = logging.getLogger()
 
     return logger
+=======
+# https://github.com/pytorch/pytorch/issues/1485
+torch.backends.cudnn.benchmark = True
+>>>>>>> origin/rewrite
 
+ENGINE_TYPES: Dict[str, Type[Engine]] = {
+    "wu_googlenet": WuGoogleNetEngine
+}
 
 if __name__ == "__main__":
-    # Setup PYTHONPATH
     sys.path.append("...")
 
-    config = _parse_main_arguments()
-    logger = _get_logger(config)
+    engine_type = ENGINE_TYPES[config.engine]
+    engine = engine_type()
 
-    if config.write_tensorboard:
-        tb = SummaryWriter(log_dir=f"outputs/tensorboards/{config.run_id}.tb")
-    else:
-        tb = None
+    try:
+        if config.interactive:
+            logger.info("Setup completed, entering interactive mode...")
+        else:
+            logger.info(f"----- START (Job ID: {config.run_id}) -----\n")
+            logger.info(f"Following configurations are used for this run:\n"
+                        f"{yaml.dump(vars(config), default_flow_style=False)}"
+                        f"Unknown arguments received: {unknown}.")
 
-    logger.info(f"----- START ({config.run_id}) -----")
-    logger.info(
-        f"Following configurations are used for this run:\n"
-        f"\n{yaml.dump(vars(config), default_flow_style=False)}\n")
+            start_time = time()
 
-    start_time = time()
+            if config.pretrain_epochs > -1:
+                engine.pretrain(config.pretrain_epochs)
 
-    main(config, tb, logger)
+            engine.run()
 
-    logger.info(f"Experiment finished in {round(time() - start_time)} seconds.")
-    logger.info(f"----- END ({config.run_id}) -----")
+            end_time = time()
 
-    if config.write_tensorboard:
-        tb.close()
+            logger.info(f"Experiment finished in {round(end_time - start_time)} seconds.")
+            logger.info(f"----- END ({config.run_id}) -----")
+    except Exception as e:
+        raise e from None
+    finally:
+        if config.remove_outputs_after_completion:
+            logger.info("Cleaning up outputs...")
+
+            paths = [
+                engine.model_output_folder,
+                engine.result_output_folder
+            ]
+
+            for path in paths:
+                if os.path.exists(path):
+                    rmtree(path, ignore_errors=True)

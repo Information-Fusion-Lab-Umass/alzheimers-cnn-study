@@ -1,12 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="f868dcbd-ce65-475b-92da-16ef355970be" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/alzheimers-cnn-study.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/alzheimers-cnn-study.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/engines/engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/engines/engine.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/models/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/models/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/utils/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/utils/result.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/result.py" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1QKOyBSbrYyK3QOyNu1axdPUDv9" />
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PythonContentEntriesConfigurable" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyIntegratedToolsModulesConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/lib/utils" />
+      <recent name="$PROJECT_DIR$/lib" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/lib/utils" />
+      <recent name="$PROJECT_DIR$/data" />
+      <recent name="$PROJECT_DIR$/lib/data" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/scripts" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f868dcbd-ce65-475b-92da-16ef355970be" name="Default Changelist" comment="" />
+      <created>1567516072358</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1567516072358</updated>
+      <workItem from="1567516077594" duration="531000" />
+      <workItem from="1567547383993" duration="4233000" />
+      <workItem from="1567629675484" duration="5030000" />
+      <workItem from="1568584850185" duration="7119000" />
+      <workItem from="1568592333020" duration="13945000" />
+      <workItem from="1568655427321" duration="170000" />
+      <workItem from="1568740695635" duration="2721000" />
+      <workItem from="1568743622494" duration="295000" />
+      <workItem from="1568743920774" duration="365000" />
+      <workItem from="1568816785253" duration="3000" />
+      <workItem from="1568820861543" duration="5376000" />
+      <workItem from="1568826916097" duration="1108000" />
+      <workItem from="1568842842735" duration="3174000" />
+      <workItem from="1569084828774" duration="903000" />
+      <workItem from="1569103047778" duration="1829000" />
+      <workItem from="1569805053000" duration="858000" />
+      <workItem from="1569887653888" duration="8160000" />
+      <workItem from="1569944549109" duration="2604000" />
+      <workItem from="1569949158322" duration="144000" />
+      <workItem from="1569960581442" duration="3958000" />
+      <workItem from="1569988874574" duration="1020000" />
+      <workItem from="1570297364985" duration="39512000" />
+      <workItem from="1570486448441" duration="64000" />
+      <workItem from="1570488352331" duration="1520000" />
+      <workItem from="1570574990231" duration="2147000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.csv" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
