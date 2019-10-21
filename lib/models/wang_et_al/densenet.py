@@ -8,7 +8,7 @@ from torch import Tensor
 from lib.models.model import Model
 
 
-class DensetNet(Model):
+class DenseNet(Model):
     def __init__(self, output_dim: int = 3):
         super().__init__()
         self.model = models.vgg(pretrained=True)

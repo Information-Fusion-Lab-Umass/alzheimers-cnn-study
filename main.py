@@ -8,7 +8,7 @@ import torch
 import yaml
 
 from config import config, unknown, logger, tensorboard
-from lib.engines import Engine, WuGoogleNetEngine
+from lib.engines import Engine, WuGoogleNetEngine, WangDenseNetEngine, SoesCnnEngine, JainVggEngine
 
 # https://github.com/pytorch/pytorch/issues/1485
 torch.backends.cudnn.benchmark = True

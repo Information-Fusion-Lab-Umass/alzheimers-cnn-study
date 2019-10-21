@@ -1,1 +1,1 @@
-from lib.models.wu_et_al.googlenet import GoogleNet
+from lib.models.wang_et_al.densenet import DenseNet
