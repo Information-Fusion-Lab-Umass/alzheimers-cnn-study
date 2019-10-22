@@ -28,7 +28,8 @@ export cmd="python3 main.py \
 --train-epochs 400 \
 --train-batch-size 128 \
 --validate-batch-size 256 \
---test-batch-size 256"
+--test-batch-size 256
+--data-lookup /mnt/nfs/work1/mfiterau/ADNI_data/wu_et_al/manifest.csv"
 
 echo ""
 echo "Executing \"$cmd\""

@@ -31,7 +31,7 @@ class Engine(Object, ABC):
         self.optimizer: Optional[Type[Optimizer]] = None
 
         self.logger.info(f"Loading data mapping...")
-        manifest_file = f"{self.provide_data_path()}/manifest.csv"
+        manifest_file = f"{self.config.data_lookup}" 
         self.mapping: Mapping = Mapping(mapping_path=manifest_file)
 
         self.logger.info(f"Building label encoder...")

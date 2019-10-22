@@ -78,6 +78,7 @@ def _get_config() -> Tuple[Namespace, List[str]]:
                         type=str, default="adam", help="Optimizer used for pre-training, see engine.py for a list of"
                                                        "added engines or add to the dictionary.")
     parser.add_argument("--num-classes", type=int, default=3, help="Number of classes in predication: AD, MCI, CN.")
+    parser.add_argument("--data-lookup", type=str, default="", help="Path of the file that maps storage location of MRI images with patient information")
 
     known_config, unknown_config = parser.parse_known_args()
 

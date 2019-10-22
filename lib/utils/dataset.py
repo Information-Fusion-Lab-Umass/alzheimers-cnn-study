@@ -37,7 +37,7 @@ class Dataset(Object, ABC, data.Dataset):
         image_path = record.image_path
         label = record.label
 
-        if image_path[-3:] == "nii":
+        if image_path[-3:] == "nii" or image_path[-3:] == ".gz":
             image = load_nii_image(image_path)
         elif image_path[-3:] == "npy":
             image = load_npy_image(image_path)
@@ -64,7 +64,8 @@ class Dataset(Object, ABC, data.Dataset):
             "batch_size": 1,
             "shuffle": True,
             "num_workers": 0,
-            "collate_fn": invalid_collate
+            "collate_fn": invalid_collate,
+            "drop_last": True
         }
         default_loader_params.update(loader_params)
 
