@@ -47,6 +47,9 @@ class Dataset(Object, ABC, data.Dataset):
         if self.transforms is not None:
             image = self.transforms(image)
 
+        if (len(image) == 3):
+            image = image.unsqueeze(0)
+
         return image, self.label_encoder.transform([label])
 
     def provide_transforms(self, transforms: List[object]):

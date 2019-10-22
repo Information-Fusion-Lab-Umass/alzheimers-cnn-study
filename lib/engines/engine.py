@@ -178,7 +178,7 @@ class Engine(Object, ABC):
         for iter_idx, (images, labels) in enumerate(loader):
             model.to(device=self.device)
             images = images.float().to(device=self.device)
-
+           
             optimizer.zero_grad()
 
             pred = None
