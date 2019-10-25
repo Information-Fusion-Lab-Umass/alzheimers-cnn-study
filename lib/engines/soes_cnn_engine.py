@@ -15,7 +15,7 @@ class SoesCnnEngine(Engine):
         return "/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al"
 
     def provide_model(self) -> Model:
-        return DenseNet()
+        return CNN()
 
     def provide_image_transforms(self) -> List[object]:
         return [

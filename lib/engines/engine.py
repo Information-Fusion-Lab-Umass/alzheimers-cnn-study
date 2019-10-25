@@ -178,9 +178,9 @@ class Engine(Object, ABC):
         for iter_idx, (images, labels) in enumerate(loader):
             model.to(device=self.device)
             images = images.float().to(device=self.device)
-           
+            
             optimizer.zero_grad()
-
+           
             pred = None
 
             if reconstruction:
@@ -190,7 +190,6 @@ class Engine(Object, ABC):
                     loss = model.reconstruction_loss(images)
             else:
                 labels = labels.squeeze().long().to(device=self.device)
-
                 if type(model) == torch.nn.DataParallel:
                     loss, pred = model.module.classification_loss(images, labels)
                 else:

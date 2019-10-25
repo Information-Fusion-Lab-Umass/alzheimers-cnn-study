@@ -3,6 +3,7 @@ from typing import Optional
 
 import nibabel as nib
 import numpy as np
+import cv2
 
 
 def load_nii_image(image_path: str) -> Optional[np.ndarray]:
@@ -20,3 +21,7 @@ def load_nii_image(image_path: str) -> Optional[np.ndarray]:
 
 def load_npy_image(image_path: str) -> Optional[np.ndarray]:
     return np.load(image_path)
+
+
+def load_tiff_image(image_path: str) -> Optional[np.ndarray]:
+    return cv2.imread(image_path)

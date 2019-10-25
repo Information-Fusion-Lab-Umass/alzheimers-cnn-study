@@ -11,10 +11,10 @@ from lib.models.model import Model
 class CNN(Model):
     def __init__(self, output_dim: int = 3):
         super().__init__()
-        num_classes = kwargs.get("num_classes", 3)
-        num_channels = kwargs.get("num_channels", 1)
-        cnn_dropout = kwargs.get("cnn_dropout", 0.1)
-        class_dropout = kwargs.get("class_dropout", 0.4)
+        num_classes = 3
+        num_channels = 1
+        cnn_dropout = 0.1
+        class_dropout = 0.4
 
         # 3^3 x 32 filters
         self.conv1 = nn.Conv3d(num_channels, 32, kernel_size=3, stride=2)

@@ -9,7 +9,7 @@ from torch import Tensor
 
 from lib.object import Object
 from lib.utils.collate import invalid_collate
-from lib.utils.images import load_nii_image, load_npy_image
+from lib.utils.images import load_nii_image, load_npy_image, load_tiff_image
 from lib.utils.mapping import Mapping
 
 
@@ -32,24 +32,26 @@ class Dataset(Object, ABC, data.Dataset):
         if self.transforms is None:
             self.logger.warning("No transforms provided to dataset. "
                                 "Call provide_transforms() with a list of transforms.")
-
+        
         record = self.mapping[index]
         image_path = record.image_path
         label = record.label
-
+        
         if image_path[-3:] == "nii" or image_path[-3:] == ".gz":
             image = load_nii_image(image_path)
         elif image_path[-3:] == "npy":
             image = load_npy_image(image_path)
+        elif image_path[-4:] == "tiff":
+            image = load_tiff_image(image_path)
         else:
             raise Exception(f"Unrecognized file extension: {image_path[-3:]} in {image_path}")
-
+       
         if self.transforms is not None:
             image = self.transforms(image)
 
-        if (len(image) == 3):
+        if image_path[-3:] == ".gz":
             image = image.unsqueeze(0)
-
+       
         return image, self.label_encoder.transform([label])
 
     def provide_transforms(self, transforms: List[object]):
