@@ -14,7 +14,7 @@ class DenseNet(Model):
         super().__init__()
         num_classes, num_channels = 3, 1
         num_blocks = [1, 1, 1, 1, 1]
-        class_dropout, cnn_dropout, self.sparsity = 0.1, 0.1, 0.0
+        class_dropout, cnn_dropout, self.sparsity = 0.1, 0.3, 0.0
         #num_classes = kwargs.get("num_classes", 3)
         #num_channels = kwargs.get("num_channels", 1)
         #num_blocks = kwargs.get("num_blocks", [1, 1, 1, 1, 1])

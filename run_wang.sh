@@ -30,7 +30,7 @@ export cmd="python main.py \
 --pretrain_optim_wd 0.01 \
 --pretrain_batch_size 2 \
 --train_epochs 150 \
---train_optim_lr 0.001 \
+--train_optim_lr 0.01 \
 --train_optim_wd 0.0005 \
 --train-batch-size 10 \
 --train_momentum 0.9 \
@@ -40,7 +40,7 @@ export cmd="python main.py \
 --optimizer SGD \
 --image-column MRI_path \
 --label-column DX \
---data-lookup /mnt/nfs/work1/mfiterau/yfung/alzheimers-cnn-study/data/wang_splitByMRI.csv"
+--data-lookup /mnt/nfs/work1/mfiterau/yfung/alzheimers-cnn-study/data/wang_splitByPaper.csv"
 
 echo ""
 echo "Executing \"$cmd\""
