@@ -336,7 +336,7 @@ PTID,VISCODE,DX,MRI_path
 027_S_1082,bl,AD,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/027_S_1082/bl/MPRAGE_2.nii.gz
 035_S_0292,m12,MCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/035_S_0292/m12/MPRAGE_3.nii.gz
 116_S_4635,bl,MCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/116_S_4635/bl/MPRAGE_2.nii.gz
-035_S_4085,bl,EMCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/035_S_4085/bl/MPRAGE_2.nii.gz
+035_S_4085,bl,MCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/035_S_4085/bl/MPRAGE_2.nii.gz
 057_S_1007,bl,MCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/057_S_1007/bl/MPRAGE_2.nii.gz
 023_S_1262,m06,AD,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/023_S_1262/m06/MPRAGE_2.nii.gz
 072_S_2037,m24,MCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/072_S_2037/m24/MPRAGE_2.nii.gz
@@ -1546,7 +1546,7 @@ PTID,VISCODE,DX,MRI_path
 023_S_0030,m06,AD,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/023_S_0030/m06/MPRAGE_3.nii.gz
 016_S_0359,m60,CN,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/016_S_0359/m60/MPRAGE_2.nii.gz
 073_S_2153,m03,MCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/073_S_2153/m03/MPRAGE_2.nii.gz
-024_S_4622,bl,LMCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/024_S_4622/bl/MPRAGE_2.nii.gz
+024_S_4622,bl,MCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/024_S_4622/bl/MPRAGE_2.nii.gz
 067_S_5205,m03,AD,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/067_S_5205/m03/MPRAGE_2.nii.gz
 941_S_1363,bl,MCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/941_S_1363/bl/MPRAGE_2.nii.gz
 018_S_0286,m06,AD,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/018_S_0286/m06/MPRAGE_SENSE_301.nii.gz
@@ -2489,7 +2489,7 @@ PTID,VISCODE,DX,MRI_path
 116_S_1232,m12,CN,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/116_S_1232/m12/MPRAGE_2.nii.gz
 073_S_4739,m06,CN,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/073_S_4739/m06/MPRAGE_2.nii.gz
 013_S_1035,m24,CN,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/013_S_1035/m24/MPRAGE_5.nii.gz
-128_S_2314,bl,EMCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/128_S_2314/bl/MPRAGE_2.nii.gz
+128_S_2314,bl,MCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/128_S_2314/bl/MPRAGE_2.nii.gz
 022_S_0004,m06,MCI,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/022_S_0004/m06/MPRAGE_3.nii.gz
 137_S_4466,m12,CN,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/137_S_4466/m12/MPRAGE_2.nii.gz
 041_S_5141,bl,CN,/mnt/nfs/work1/mfiterau/ADNI_data/soes_et_al/skullstripped/041_S_5141/bl/MPRAGE_2.nii.gz

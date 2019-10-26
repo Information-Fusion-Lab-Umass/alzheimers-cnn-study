@@ -45,10 +45,13 @@ class Dataset(Object, ABC, data.Dataset):
             image = load_tiff_image(image_path)
         else:
             raise Exception(f"Unrecognized file extension: {image_path[-3:]} in {image_path}")
+ 
+        if image_path[34:44] == "soes_et_al":
+            image = np.resize(image, (116, 130, 83))
        
         if self.transforms is not None:
             image = self.transforms(image)
-
+     
         if image_path[-3:] == ".gz":
             image = image.unsqueeze(0)
        
