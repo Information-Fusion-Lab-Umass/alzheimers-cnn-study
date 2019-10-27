@@ -27,31 +27,26 @@ class WangDenseNetEngine(Engine):
         validation_folds = self.config.training_crossval_folds
         split_ratios = [1.0 / validation_folds] * validation_folds
 
-        shuffled_mapping = self.mapping.shuffle()
-        train_split, test_split = shuffled_mapping.split_by_ratio([0.7, 0.3])
+        train_split = self.mapping
         results = []
 
         for fold_idx in range(validation_folds):
             self.logger.info(f"Running {fold_idx + 1}th fold.")
             self.model = self.provide_model()
             parameters = list(self.model.parameters())
-            parameters = [
-                {"params": parameters[:-2], "lr": 0.0001},  # two sets of parameters because weight + bias
-                {"params": parameters[-2:], "lr": 0.00001}
-            ]
-            self.optimizer = self.build_optimizer(parameters, optimizer_type="sgd")
-
+            parameters = [{"params": parameters, "lr": 0.01}]
+            self.optimizer = self.build_optimizer(parameters, optimizer_type="sgd", momentum=self.config.train_momentum)
+            
             copied_splits: List[Mapping] = train_split.split_by_ratio(split_ratios)
             fold_valid_split = copied_splits.pop(fold_idx)
             fold_train_split = Mapping.merge(copied_splits)
-
-            self.train(num_epochs=self.config.train_epochs,
+            
+            valid_result = self.train(num_epochs=self.config.train_epochs,
                        train_mapping=fold_train_split,
                        valid_mapping=fold_valid_split,
                        ith_fold=fold_idx)
 
-            test_result = self.test(ith_fold=fold_idx, test_mapping=test_split)
-            results.append(test_result)
+            results.append(valid_result)
 
 
     def train(self,
@@ -73,6 +68,8 @@ class WangDenseNetEngine(Engine):
             train_result = Result(label_encoder=self.label_encoder)
 
             for iter_idx, (_, labels, loss, scores) in enumerate(train_loop):
+                for param_group in self.optimizer.param_groups:
+                    param_group['lr'] = 0.01 * (1-float(num_epochs*train_mapping.__len__()/10 + iter_idx)/1000)**0.005
                 train_result.append_loss(loss)
                 train_result.append_scores(scores, labels)
 
@@ -95,6 +92,10 @@ class WangDenseNetEngine(Engine):
             if lowest_validation_loss > validation_loss and self.config.save_best_model:
                 self.logger.info(f"{lowest_validation_loss} > {validation_loss}, saving model...")
                 self.save_current_model(file_name="lowest_loss.pt")
+            
+            
+            if num_epochs * train_mapping.__len__() / 10 > 1000:
+                return valid_result
 
     def test(self, ith_fold: int, test_mapping: Mapping) -> Result:
         self.logger.info(f"Starting test for {ith_fold + 1}th fold.")

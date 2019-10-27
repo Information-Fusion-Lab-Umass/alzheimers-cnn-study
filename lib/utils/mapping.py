@@ -43,7 +43,7 @@ class Mapping(Object, Iterable):
     def split_by_ratio(self, ratios: List[float]) -> List["Mapping"]:
         """This method splits the mapped images into sets based on the specified ratio.
         """
-        assert sum(ratios) == 1.0, "Split ratio must add up to 1.0"
+        assert abs(sum(ratios) - 1.0) < 0.00000001, "Split ratio must add up to 1.0"
         num_total = len(self.mapping)
         num_per_split = list(map(lambda x: floor(num_total * x), ratios))
         splits = [Mapping(mapping=deepcopy(self.mapping[i * num:i * num + num])) for i, num in enumerate(num_per_split)]

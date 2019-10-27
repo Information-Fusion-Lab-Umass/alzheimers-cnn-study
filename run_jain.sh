@@ -30,7 +30,7 @@ export cmd="python main.py \
 --train-batch-size 40 \
 --validate-batch-size 40 \
 --test-batch-size 40 \
---optimizer RMSprop \
+--train-optimizer RMSprop \
 --engine jain_vgg \
 --image-column MRI_path \
 --data-lookup /mnt/nfs/work1/mfiterau/yfung/alzheimers-cnn-study/data/jain_splitByMRI.csv"
