@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --job-name=debug-script
+#SBATCH --job-name=jain-et-al
 #SBATCH -e outputs/errors/%j.txt        # File to which STDERR will be written
 #SBATCH --output=outputs/logs/%j.txt    # Output file
 #SBATCH --partition=m40-long
@@ -12,24 +12,24 @@
 
 # To make a boolean option False, simply prefix with "no-"
 export cmd="python main.py \
---run_id=$SLURM_JOB_ID \
---log_level 20 \
---no_write_tensorboard \
---log_to_stdout \
---log_to_file \
---no_save_best_model \
---use_gpu \
---label_column DX \
---num_classes 3 \
---training_crossval_folds 1 \
---testing_split 0.2 \
---num_workers 6 \
---train_epochs 50 \
---train_optim_lr 0.0001 \
---train_optim_wd 0.5 \
---train_batch_size 40 \
---validate_batch_size 40 \
---test_batch_size 40 \
+--run-id=$SLURM_JOB_ID \
+--log-level 20 \
+--no-write-tensorboard \
+--log-to-stdout \
+--no-log-to-file \
+--no-save-best-model \
+--use-gpu \
+--label-column DX \
+--num-classes 3 \
+--training-crossval-folds 1 \
+--testing-split 0.2 \
+--num-workers 6 \
+--train-epochs 50 \
+--train-optim-lr 0.0001 \
+--train-optim-wd 0.5 \
+--train-batch-size 40 \
+--validate-batch-size 40 \
+--test-batch-size 40 \
 --optimizer RMSprop \
 --engine jain_vgg \
 --image-column MRI_path \
