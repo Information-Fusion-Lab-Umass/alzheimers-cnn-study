@@ -100,3 +100,6 @@ class Mapping(Object, Iterable):
         df = df[df[image_column].notnull()].reset_index(drop=True)
 
         return list(map(self._series_to_record, df.iterrows()))
+
+    def two_class(self, memodict={}) -> 'Mapping':
+        return Mapping(mapping=deepcopy(list(filter(lambda x: x.label != "MCI", self.mapping))))
