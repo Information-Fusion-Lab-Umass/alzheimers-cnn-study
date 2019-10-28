@@ -29,6 +29,7 @@ export cmd="python main.py \
 --pretrain_optim_lr 0.001 \
 --pretrain_optim_wd 0.01 \
 --pretrain_batch_size 2 \
+--pretrain_epochs 20 \
 --train_epochs 150 \
 --train_optim_lr 0.01 \
 --train_optim_wd 0.0005 \

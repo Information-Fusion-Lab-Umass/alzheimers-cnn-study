@@ -28,22 +28,27 @@ class SoesCnnEngine(Engine):
         split_ratios = [1.0 / validation_folds] * validation_folds
 
         shuffled_mapping = self.mapping.shuffle()
-        train_split, test_split = shuffled_mapping.split_by_ratio([0.7, 0.3])
+        train_split, test_split = shuffled_mapping.split_by_ratio([0.9, 0.1])
         results = []
 
         for fold_idx in range(validation_folds):
             self.logger.info(f"Running {fold_idx + 1}th fold.")
             self.model = self.provide_model()
             parameters = list(self.model.parameters())
-            parameters = [
-                {"params": parameters[:-2], "lr": 0.0001},  # two sets of parameters because weight + bias
-                {"params": parameters[-2:], "lr": 0.00001}
-            ]
+            parameters = [{"params": parameters[:-2], "lr": 0.0001}]
             self.optimizer = self.build_optimizer(parameters, optimizer_type="sgd")
 
             copied_splits: List[Mapping] = train_split.split_by_ratio(split_ratios)
             fold_valid_split = copied_splits.pop(fold_idx)
             fold_train_split = Mapping.merge(copied_splits)
+
+            train_split, val_split, test_split = shuffled_mapping.split_by_ratio([0.8, 0.1, 0.1])
+            pretrain_split, preval_split = train_split.two_class(), val_split.two_class()
+            
+            self.train(num_epochs=self.config.pretrain_epochs,
+                       train_mapping=pretrain_split,
+                       valid_mapping=preval_split,
+                       ith_fold=fold_idx)
 
             self.train(num_epochs=self.config.train_epochs,
                        train_mapping=fold_train_split,
