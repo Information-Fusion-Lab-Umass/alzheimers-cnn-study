@@ -329,7 +329,7 @@ class Engine(Object, ABC):
                         **optimizer_params) -> Optimizer:
         optimizer_type = optimizer_type.lower()
 
-        if optimizer_type == "adam":
+        if optimizer_type == "adam" and "momentum" in optimizer_params:
             del optimizer_params["momentum"]
-
+       
         return Engine.OPTIMIZER_TYPES[optimizer_type](parameters, **optimizer_params)

@@ -11,28 +11,23 @@
 
 # To make a boolean option False, simply prefix with "no-"
 export cmd="python main.py \
---run_id=$SLURM_JOB_ID \
---log_level 20 \
---no_write_tensorboard \
---log_to_stdout \
---no_log_to_file \
---no_save_best_model \
---use_gpu \
---data_path data/NDJ_wang_splitByPaper_data.csv \
---brain_mask_path=$MASK_ICV_PATH \
---image_columns brain_mri_path \
---label_column DX \
+--run-id=$SLURM_JOB_ID \
+--log-level 20 \
+--no-write-tensorboard \
+--log-to-stdout \
+--no-log-to-file \
+--no-save-best-model \
+--use-gpu \
 --training_crossval_folds 10 \
 --testing_split 0.2 \
 --num_workers 0 \
---engine wang_densenet \
---pretrain_optim_lr 0.001 \
+--pretrain-optim-lr 0.001 \
 --pretrain_optim_wd 0.01 \
---pretrain_batch_size 2 \
---pretrain_epochs 20 \
---train_epochs 150 \
---train_optim_lr 0.01 \
---train_optim_wd 0.0005 \
+--pretrain_batch_size 5 \
+--pretrain-epochs 20 \
+--train-epochs 150 \
+--train-optim-lr 0.01 \
+--train-optim-wd 0.0005 \
 --train-batch-size 10 \
 --train_momentum 0.9 \
 --validate_batch_size 10 \

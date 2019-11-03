@@ -35,8 +35,8 @@ class SoesCnnEngine(Engine):
             self.logger.info(f"Running {fold_idx + 1}th fold.")
             self.model = self.provide_model()
             parameters = list(self.model.parameters())
-            parameters = [{"params": parameters[:-2], "lr": 0.0001}]
-            self.optimizer = self.build_optimizer(parameters, optimizer_type="sgd")
+            parameters = [{"params": parameters[:-2], "lr": self.config.pretrain_optim_lr}]
+            self.optimizer = self.build_optimizer(parameters, optimizer_type="Adam")
 
             copied_splits: List[Mapping] = train_split.split_by_ratio(split_ratios)
             fold_valid_split = copied_splits.pop(fold_idx)
@@ -50,6 +50,9 @@ class SoesCnnEngine(Engine):
                        valid_mapping=preval_split,
                        ith_fold=fold_idx)
 
+            parameters = [{"params": parameters[:-2], "lr": self.config.optim_lr}]
+            self.optimizer = self.build_optimizer(parameters, optimizer_type="Adam")
+
             self.train(num_epochs=self.config.train_epochs,
                        train_mapping=fold_train_split,
                        valid_mapping=fold_valid_split,
@@ -58,6 +61,11 @@ class SoesCnnEngine(Engine):
             test_result = self.test(ith_fold=fold_idx, test_mapping=test_split)
             results.append(test_result)
 
+
+    def pretrain(self, num_epochs: int):
+        """Done in the body of run
+        """
+        pass
 
     def train(self,
               num_epochs: int,
