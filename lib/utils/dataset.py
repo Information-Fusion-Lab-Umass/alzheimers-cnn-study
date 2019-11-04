@@ -48,7 +48,9 @@ class Dataset(Object, ABC, data.Dataset):
  
         if image_path[34:44] == "soes_et_al":
             image = np.resize(image, (116, 130, 83))
-       
+            if np.random.ranint(0,2) == 0:
+                image = image[::-1,:,:]
+      
         if self.transforms is not None:
             image = self.transforms(image)
      
