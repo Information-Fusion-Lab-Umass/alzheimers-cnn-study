@@ -63,7 +63,7 @@ class Dataset(Object, ABC, data.Dataset):
         if image_path[-3:] == ".gz":
             image = image.unsqueeze(0)
         
-        if age == age:
+        if age != None:
             return (image, age), self.label_encoder.transform([label])
             #image = torch.tensor([image, age]) 
         return image, self.label_encoder.transform([label])

@@ -85,7 +85,9 @@ class Mapping(Object, Iterable):
         visit_code = series[1]["VISCODE"]
         image_path = series[1][self.config.image_column]
         label = series[1]["DX"]
-        age = series[1]["AGE"]
+        age = None
+        if len(series[1]) > 4:
+            age = series[1]["AGE"]
         return ImageRecord(patient_id, visit_code, image_path, label, age)
 
     def _load_mapping(self, mapping_path: str) -> List[ImageRecord]:
