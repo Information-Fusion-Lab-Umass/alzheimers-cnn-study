@@ -46,7 +46,16 @@ class Mapping(Object, Iterable):
         assert abs(sum(ratios) - 1.0) < 0.00000001, "Split ratio must add up to 1.0"
         num_total = len(self.mapping)
         num_per_split = list(map(lambda x: floor(num_total * x), ratios))
-        splits = [Mapping(mapping=deepcopy(self.mapping[i * num:i * num + num])) for i, num in enumerate(num_per_split)]
+        splits = []
+        if len(num_per_split) == 2:
+            splits = [Mapping(mapping=deepcopy(self.mapping[0:num_per_split[0]])), \
+                      Mapping(mapping=deepcopy(self.mapping[-1*num_per_split[1]:-1]))]
+        elif len(num_per_split) == 3:
+            [Mapping(mapping=deepcopy(self.mapping[0:num_per_split[0]])), \
+                     Mapping(mapping=deepcopy(self.mapping[num_per_split[0]:-1*num_per_split[2]])), \
+                      Mapping(mapping=deepcopy(self.mapping[-1*num_per_split[2]:-1]))]
+        else:
+            quit()
         return splits
 
     def shuffle(self) -> 'Mapping':
@@ -76,8 +85,8 @@ class Mapping(Object, Iterable):
         visit_code = series[1]["VISCODE"]
         image_path = series[1][self.config.image_column]
         label = series[1]["DX"]
-
-        return ImageRecord(patient_id, visit_code, image_path, label)
+        age = series[1]["AGE"]
+        return ImageRecord(patient_id, visit_code, image_path, label, age)
 
     def _load_mapping(self, mapping_path: str) -> List[ImageRecord]:
         assert mapping_path is not None, "Cannot load empty path!"
@@ -85,14 +94,15 @@ class Mapping(Object, Iterable):
         image_column: str = self.config.image_column
         # name of the column containing label
         label_column: str = self.config.label_column
-
         if mapping_path[-3:] == "csv":
-            df = pd.read_csv(mapping_path,
+            df = pd.read_csv(mapping_path,names=["PTID", "VISCODE", label_column, image_column, "AGE"])
+            if df["PTID"].iloc[0] == "PTID":
+                df = pd.read_csv(mapping_path,
                              dtype={image_column: str, label_column: str, "PTID": str, "VISCODE": str})
         else:
             with open(mapping_path, "rb") as f:
                 df = pickle.load(f)
-
+        
         if self.config.num_classes == 2:
             df = df[(df["DX"] == "AD") | (df["DX"] == "CN")]
 

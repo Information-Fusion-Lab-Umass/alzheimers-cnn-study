@@ -177,8 +177,11 @@ class Engine(Object, ABC):
                                       **loader_params)
         for iter_idx, (images, labels) in enumerate(loader):
             model.to(device=self.device)
-            images = images.float().to(device=self.device)
-            
+            if len(images) != 2:
+                images = images.float().to(device=self.device)
+            else: 
+                images[0] = images[0].float().to(device=self.device)
+                images[1] = images[1].float().to(device=self.device)    
             optimizer.zero_grad()
            
             pred = None
@@ -194,10 +197,12 @@ class Engine(Object, ABC):
                     loss, pred = model.module.classification_loss(images, labels)
                 else:
                     loss, pred = model.classification_loss(images, labels)
-
+           
             loss.backward()
             optimizer.step()
-
+      
+            if len(images) == 2:
+                  images= images[0]
             yield images.detach().cpu(), \
                   labels.detach().cpu(), \
                   loss.detach().cpu(), \

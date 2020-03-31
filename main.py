@@ -8,7 +8,7 @@ import torch
 import yaml
 
 from config import config, unknown, logger, tensorboard
-from lib.engines import Engine, WuGoogleNetEngine, WangDenseNetEngine, SoesCnnEngine, JainVggEngine
+from lib.engines import Engine, WuGoogleNetEngine, WangDenseNetEngine, SoesCnnEngine, JainVggEngine, LiuEngine
 
 # https://github.com/pytorch/pytorch/issues/1485
 torch.backends.cudnn.benchmark = True
@@ -17,7 +17,8 @@ ENGINE_TYPES: Dict[str, Type[Engine]] = {
     "wu_googlenet": WuGoogleNetEngine, 
     "wang_densenet": WangDenseNetEngine,
     "soes_cnn": SoesCnnEngine,
-    "jain_vgg": JainVggEngine
+    "jain_vgg": JainVggEngine,
+    "liu": LiuEngine
 }
 
 if __name__ == "__main__":
@@ -25,7 +26,7 @@ if __name__ == "__main__":
 
     engine_type = ENGINE_TYPES[config.engine]
     engine = engine_type()
-
+    
     try:
         if config.interactive:
             logger.info("Setup completed, entering interactive mode...")

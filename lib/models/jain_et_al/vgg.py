@@ -12,7 +12,13 @@ class VGG(Model):
     def __init__(self, output_dim: int = 3):
         super().__init__()
         self.model = models.vgg16(pretrained=True)
-        self.model.fc = nn.Linear(1024, output_dim)
+        self.model.classifier = nn.Sequential(
+            nn.Linear(in_features=25088, out_features=256, bias=True),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=0.5),
+            nn.Linear(in_features=256, out_features=output_dim, bias=True)
+        )
+        #self.model.fc = nn.Linear(1024, output_dim)
 
     def forward(self, images: Tensor) -> Tensor:
         return self.model(images)

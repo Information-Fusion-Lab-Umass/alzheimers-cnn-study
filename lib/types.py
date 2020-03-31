@@ -8,6 +8,6 @@ class ImageRecord(NamedTuple):
     visit_code: str
     image_path: str
     label: str
-
+    age: float
 
 Optimizer = Union[optim.Adam, optim.SGD, optim.RMSprop]

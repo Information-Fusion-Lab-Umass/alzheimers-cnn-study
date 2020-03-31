@@ -6,7 +6,7 @@ import torch.utils.data as data
 import torchvision.transforms as T
 from sklearn.preprocessing import LabelEncoder
 from torch import Tensor
-
+import torch
 from lib.object import Object
 from lib.utils.collate import invalid_collate
 from lib.utils.images import load_nii_image, load_npy_image, load_tiff_image
@@ -36,6 +36,7 @@ class Dataset(Object, ABC, data.Dataset):
         record = self.mapping[index]
         image_path = record.image_path
         label = record.label
+        age = record.age
         
         if image_path[-3:] == "nii" or image_path[-3:] == ".gz":
             image = load_nii_image(image_path)
@@ -48,15 +49,23 @@ class Dataset(Object, ABC, data.Dataset):
  
         if image_path[34:44] == "soes_et_al":
             image = np.resize(image, (116, 130, 83))
-            if np.random.ranint(0,2) == 0:
+            if np.random.randint(0,2) == 0:
                 image = image[::-1,:,:]
-      
+       
+        if image_path[36:43] == "clinica":
+            # Liu et al
+            image = self.centerCrop(image,96,96,96)
+            age = list(np.arange(0.0,120.0,0.5)).index(age)
+        
         if self.transforms is not None:
             image = self.transforms(image)
      
         if image_path[-3:] == ".gz":
             image = image.unsqueeze(0)
-       
+        
+        if age == age:
+            return (image, age), self.label_encoder.transform([label])
+            #image = torch.tensor([image, age]) 
         return image, self.label_encoder.transform([label])
 
     def provide_transforms(self, transforms: List[object]):
@@ -80,5 +89,15 @@ class Dataset(Object, ABC, data.Dataset):
         default_loader_params.update(loader_params)
 
         dataset.provide_transforms(image_transforms)
-
         return data.DataLoader(dataset, **default_loader_params)
+
+    def centerCrop(self, img, length, width, height):
+        assert img.shape[0] >= length
+        assert img.shape[1] >= width
+        assert img.shape[2] >= height
+
+        x = img.shape[0]//2 - length//2
+        y = img.shape[1]//2 - width//2
+        z = img.shape[2]//2 - height//2
+        img = img[x:x+length, y:y+width, z:z+height]
+        return img

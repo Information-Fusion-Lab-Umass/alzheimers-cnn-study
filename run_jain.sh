@@ -25,7 +25,7 @@ export cmd="python main.py \
 --testing-split 0.2 \
 --num-workers 6 \
 --train-epochs 50 \
---train-optim-lr 0.0001 \
+--train-optim-lr 0.00005 \
 --train-optim-wd 0.5 \
 --train-batch-size 40 \
 --validate-batch-size 40 \

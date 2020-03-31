@@ -50,7 +50,7 @@ def _get_config() -> Tuple[Namespace, List[str]]:
                         help="Number of workers (processes) for the PyTorch dataloader.")
     parser.add_argument("--training-crossval-folds", type=int, default=5,
                         help="K-fold cross-validation for the training dataset.")
-    parser.add_argument("--testin-split", type=float, default=0.2,
+    parser.add_argument("--testing-split", type=float, default=0.2,
                         help="Decimal percentage of data allocated to testing.")
     parser.add_argument("--pretrain-epochs", type=int, default=-1,
                         help="Number of pre-training epochs to perform.")
@@ -97,7 +97,7 @@ def _get_logger(config: Namespace) -> logging.Logger:
     if config.log_to_file:
         log_handlers.append(
             logging.FileHandler(filename=f"outputs/logs/{config.run_id}.txt"))
-
+    
     logging.basicConfig(level=config.log_level,
                         handlers=log_handlers,
                         format='%(asctime)s [%(levelname)s] %(message)s')

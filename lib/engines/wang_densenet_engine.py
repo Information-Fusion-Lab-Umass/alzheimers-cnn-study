@@ -34,8 +34,8 @@ class WangDenseNetEngine(Engine):
             self.logger.info(f"Running {fold_idx + 1}th fold.")
             self.model = self.provide_model()
             parameters = list(self.model.parameters())
-            parameters = [{"params": parameters, "lr": 0.01}]
-            self.optimizer = self.build_optimizer(parameters, optimizer_type="sgd", momentum=self.config.train_momentum)
+            parameters = [{"params": parameters, "lr": self.config.train_optim_lr}]
+            self.optimizer = self.build_optimizer(parameters, optimizer_type=self.config.train_optimizer, momentum=self.config.train_momentum)
             
             copied_splits: List[Mapping] = train_split.split_by_ratio(split_ratios)
             fold_valid_split = copied_splits.pop(fold_idx)
@@ -56,7 +56,7 @@ class WangDenseNetEngine(Engine):
               valid_mapping: Mapping) -> None:
 
         lowest_validation_loss = float("inf")
-
+       
         for num_epoch in range(num_epochs):
             # ==========================================================================================================
             # Training
@@ -69,7 +69,9 @@ class WangDenseNetEngine(Engine):
 
             for iter_idx, (_, labels, loss, scores) in enumerate(train_loop):
                 for param_group in self.optimizer.param_groups:
-                    param_group['lr'] = 0.01 * (1-float(num_epochs*train_mapping.__len__()/10 + iter_idx)/1000)**0.005
+                     self.batch_size = 10
+                     max_iter = num_epochs * train_mapping.__len__()/self.batch_size
+                     param_group['lr'] = 0.01 * (1-(float(num_epoch*(train_mapping.__len__()/self.batch_size) + iter_idx)/max_iter))**0.8
                 train_result.append_loss(loss)
                 train_result.append_scores(scores, labels)
 
@@ -94,8 +96,7 @@ class WangDenseNetEngine(Engine):
                 self.save_current_model(file_name="lowest_loss.pt")
             
             
-            if num_epochs * train_mapping.__len__() / 10 > 1000:
-                return valid_result
+        return valid_result
 
     def test(self, ith_fold: int, test_mapping: Mapping) -> Result:
         self.logger.info(f"Starting test for {ith_fold + 1}th fold.")

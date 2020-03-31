@@ -18,21 +18,20 @@ export cmd="python main.py \
 --no-log-to-file \
 --no-save-best-model \
 --use-gpu \
---training-crossval-folds 10 \
+--testing-split 0.2 \
 --num-workers 6 \
---engine wang_densenet \
+--engine liu \
 --train-epochs 12 \
---train-optim-lr 0.0001 \
---train-optim-wd 0.0005 \
---train-batch-size 10 \
+--train-optim-lr 0.01 \
+--train-optim-wd 0.0 \
+--train-batch-size 4 \
 --train-momentum 0.9 \
---validate-batch-size 10 \
---test-batch-size 10 \
---lrate-scheduler poly \
---train-optimizer Adam \
+--validate-batch-size 4 \
+--test-batch-size 4 \
+--train-optimizer SGD \
 --image-column MRI_path \
 --label-column DX \
---data-lookup /mnt/nfs/work1/mfiterau/yfung/alzheimers-cnn-study/data/wang_splitByPaper.csv"
+--data-lookup /mnt/nfs/work1/mfiterau/yfung/alzheimers-cnn-study/data/liu_splitByPT.csv"
 
 echo ""
 echo "Executing \"$cmd\""

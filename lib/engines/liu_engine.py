@@ -4,18 +4,18 @@ import torchvision.transforms as T
 
 from lib.engines import Engine
 from lib.models import Model
-from lib.models.jain_et_al import VGG
+from lib.models.liu_et_al import LiuNet
 from lib.utils import Result
 from lib.utils.mapping import Mapping
 from lib.utils.transforms import RangeNormalize
 
 
-class JainVggEngine(Engine):
+class LiuEngine(Engine):
     def provide_data_path(self) -> str:
-        return "/mnt/nfs/work1/mfiterau/ADNI_data/jain_et_al"
+        return "/mnt/nfs/work1/mfiterau/ADNI_data/wang_et_al"
 
     def provide_model(self) -> Model:
-        return VGG()
+        return LiuNet()
 
     def provide_image_transforms(self) -> List[object]:
         return [
@@ -26,26 +26,30 @@ class JainVggEngine(Engine):
     def run(self, *inputs, **kwargs) -> None:
         validation_folds = self.config.training_crossval_folds
         split_ratios = [1.0 / validation_folds] * validation_folds
+
         training_ratio = 1-self.config.testing_split
         testing_ratio = self.config.testing_split
-        train_split, test_split = self.mapping.split_by_ratio([training_ratio, testing_ratio])
+        train_split, valid_split = self.mapping.split_by_ratio([training_ratio, testing_ratio])
+
+        #train_split = self.mapping
         results = []
 
+        #    self.logger.info(f"Running {fold_idx + 1}th fold.")
         self.model = self.provide_model()
         parameters = list(self.model.parameters())
-        parameters = [{"params": parameters[:-2], "lr": 0.0001}]
-        self.optimizer = self.build_optimizer(parameters, optimizer_type="RMSprop")
+        parameters = [{"params": parameters, "lr": self.config.train_optim_lr}]
+        self.optimizer = self.build_optimizer(parameters, optimizer_type=self.config.train_optimizer, momentum=self.config.train_momentum)
+            
+        #copied_splits: List[Mapping] = train_split.split_by_ratio(split_ratios)
+        #fold_valid_split = copied_splits.pop(fold_idx)
+        #    fold_train_split = Mapping.merge(copied_splits)
+            
+        valid_result = self.train(num_epochs=self.config.train_epochs,
+                    train_mapping=train_split,
+                    valid_mapping=valid_split,
+                    ith_fold=0)
 
-        fold_train_split = train_split
-        fold_valid_split = test_split
-       
-        self.train(num_epochs=self.config.train_epochs,
-                   train_mapping=fold_train_split,
-                   valid_mapping=fold_valid_split,
-                   ith_fold=0)
-
-        test_result = self.test(ith_fold=fold_idx, test_mapping=test_split)
-        results.append(test_result)
+        #results.append(valid_result)
 
 
     def train(self,
@@ -53,8 +57,9 @@ class JainVggEngine(Engine):
               ith_fold: int,
               train_mapping: Mapping,
               valid_mapping: Mapping) -> None:
-        lowest_validation_loss = float("inf")
 
+        lowest_validation_loss = float("inf")
+       
         for num_epoch in range(num_epochs):
             # ==========================================================================================================
             # Training
@@ -66,6 +71,10 @@ class JainVggEngine(Engine):
             train_result = Result(label_encoder=self.label_encoder)
 
             for iter_idx, (_, labels, loss, scores) in enumerate(train_loop):
+                #for param_group in self.optimizer.param_groups:
+                #     self.batch_size = 10
+                #     max_iter = num_epochs * train_mapping.__len__()/self.batch_size
+                #     param_group['lr'] = 0.01 * (1-(float(num_epoch*(train_mapping.__len__()/self.batch_size) + iter_idx)/max_iter))**0.8
                 train_result.append_loss(loss)
                 train_result.append_scores(scores, labels)
 
@@ -88,7 +97,9 @@ class JainVggEngine(Engine):
             if lowest_validation_loss > validation_loss and self.config.save_best_model:
                 self.logger.info(f"{lowest_validation_loss} > {validation_loss}, saving model...")
                 self.save_current_model(file_name="lowest_loss.pt")
-
+            
+            
+        return valid_result
 
     def test(self, ith_fold: int, test_mapping: Mapping) -> Result:
         self.logger.info(f"Starting test for {ith_fold + 1}th fold.")
