@@ -23,4 +23,4 @@ A plethora of deep learning models have been developed for the task of Alzheimer
 ![alt text](overview.png)
 
 ## Running the code
-Go into *src*, and do `2d_run.sh` or `3d_run.sh`.
+Just run the files like `scripts/runliu.sh`.
